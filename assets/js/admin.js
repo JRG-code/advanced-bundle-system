@@ -51,6 +51,9 @@
             var productType = $('#product-type').val();
 
             if (productType === 'bundle') {
+                // Add class to body for CSS targeting
+                $('body').addClass('product-type-bundle');
+
                 $('.show_if_bundle').show();
                 $('.hide_if_bundle').hide();
 
@@ -58,11 +61,35 @@
                 $('.show_if_simple').hide();
                 $('.show_if_variable').hide();
 
+                // Hide only stock quantity management fields (not SKU, GTIN, etc.)
+                // These will be hidden in General tab but visible in Inventory tab via CSS
+                $('#general_product_data ._manage_stock_field').hide();
+                $('#general_product_data ._stock_field').hide();
+                $('#general_product_data ._backorders_field').hide();
+                $('#general_product_data ._low_stock_amount_field').hide();
+                $('#general_product_data ._sku_field').hide();
+                $('#general_product_data ._gtin_field').hide();
+                $('#general_product_data ._upc_field').hide();
+                $('#general_product_data ._ean_field').hide();
+                $('#general_product_data ._isbn_field').hide();
+                $('#general_product_data ._stock_status_field').hide();
+                $('#general_product_data ._sold_individually_field').hide();
+
+                // Keep Inventory tab visible
+                $('.inventory_options.inventory_tab').show();
+
                 // Show bundle tab
                 $('.bundle_options').addClass('active');
                 $('#bundle_product_data').show();
             } else {
+                // Remove class from body
+                $('body').removeClass('product-type-bundle');
+
                 $('.show_if_bundle').hide();
+
+                // Restore inventory fields for non-bundle products
+                $('.inventory_options.inventory_tab').show();
+                $('#general_product_data ._sku_field').show();
             }
         },
 
@@ -98,7 +125,8 @@
                         return {
                             action: 'abs_search_products',
                             term: params.term,
-                            nonce: $('#abs_search_nonce').val() || ''
+                            nonce: $('#abs_search_nonce').val() || '',
+                            exclude_id: $('#abs_current_product_id').val() || 0
                         };
                     },
                     processResults: function(data) {

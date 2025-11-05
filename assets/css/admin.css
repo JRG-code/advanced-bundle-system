@@ -28,6 +28,16 @@
     color: #666;
 }
 
+/* Fix alignment for bundle fields in General tab */
+.show_if_bundle {
+    padding: 12px;
+}
+
+.show_if_bundle .form-field,
+.show_if_bundle .options_group {
+    margin-left: 0;
+}
+
 /* Bundle Items Table */
 #abs_bundle_items_table {
     margin-top: 10px;
@@ -156,28 +166,34 @@ body.post-type-product .show_if_bundle {
     display: block;
 }
 
-body.post-type-product .product_data_tabs .inventory_options.inventory_tab,
-body.post-type-product #inventory_product_data,
-body.post-type-product .hide_if_bundle,
-body.post-type-product ._manage_stock_field,
-body.post-type-product ._stock_status_field,
-body.post-type-product ._stock_field,
-body.post-type-product ._backorders_field,
-body.post-type-product ._low_stock_amount_field,
-body.post-type-product ._sold_individually_field {
-    display: block !important;
+/* Keep Inventory tab visible but hide stock quantity management for bundles */
+body.post-type-product.product-type-bundle ._manage_stock_field,
+body.post-type-product.product-type-bundle ._stock_field,
+body.post-type-product.product-type-bundle ._backorders_field,
+body.post-type-product.product-type-bundle ._low_stock_amount_field {
+    display: none !important;
 }
 
-.product-type-bundle .inventory_options.inventory_tab,
-.product-type-bundle #inventory_product_data,
-.product-type-bundle .hide_if_bundle,
-.product-type-bundle ._manage_stock_field,
-.product-type-bundle ._stock_status_field,
-.product-type-bundle ._stock_field,
-.product-type-bundle ._backorders_field,
-.product-type-bundle ._low_stock_amount_field,
-.product-type-bundle ._sold_individually_field {
+/* Hide SKU and stock fields when they appear OUTSIDE the Inventory tab for bundles */
+#general_product_data .show_if_bundle ~ ._sku_field,
+#general_product_data .show_if_bundle ~ ._gtin_field,
+#general_product_data .show_if_bundle ~ ._upc_field,
+#general_product_data .show_if_bundle ~ ._ean_field,
+#general_product_data .show_if_bundle ~ ._isbn_field,
+#general_product_data .show_if_bundle ~ ._stock_status_field,
+#general_product_data .show_if_bundle ~ ._sold_individually_field {
     display: none !important;
+}
+
+/* Show these fields properly in the Inventory tab */
+#inventory_product_data ._sku_field,
+#inventory_product_data ._gtin_field,
+#inventory_product_data ._upc_field,
+#inventory_product_data ._ean_field,
+#inventory_product_data ._isbn_field,
+#inventory_product_data ._stock_status_field,
+#inventory_product_data ._sold_individually_field {
+    display: block !important;
 }
 
 /* Personalization Checkbox */
@@ -265,6 +281,18 @@ body.post-type-product ._sold_individually_field {
     content: "\f316"; /* Package icon */
 }
 
+/* Inventory Column in Products List */
+.wp-list-table .column-abs_inventory {
+    width: 120px;
+    text-align: left;
+}
+
+.wp-list-table .column-abs_inventory small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+}
+
 /* Responsive Admin Styles */
 @media (max-width: 782px) {
     #abs_bundle_products,
@@ -276,5 +304,9 @@ body.post-type-product ._sold_individually_field {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
+    }
+
+    .wp-list-table .column-abs_inventory {
+        width: auto;
     }
 }

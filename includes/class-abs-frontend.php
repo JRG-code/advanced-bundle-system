@@ -29,8 +29,10 @@ class ABS_Frontend {
             return;
         }
 
+        $bundle_heading = ABS_Settings::get_setting('bundle_heading', __('This bundle includes:', 'advanced-bundle-system'));
+
         echo '<div class="abs-bundle-products">';
-        echo '<h3>' . __('This bundle includes:', 'advanced-bundle-system') . '</h3>';
+        echo '<h3>' . esc_html($bundle_heading) . '</h3>';
         echo '<div class="abs-bundle-items">';
 
         $item_counter = 0; // Counter for unique IDs when same product appears multiple times
@@ -145,6 +147,8 @@ class ABS_Frontend {
      */
     private function display_personalization_fields($product_id, $unique_id, $label, $max_characters) {
         $placeholder = sprintf(__('Enter text (max %d characters)', 'advanced-bundle-system'), $max_characters);
+        $preview_button_text = ABS_Settings::get_setting('preview_button_text', __('Preview Personalization', 'advanced-bundle-system'));
+        $disclaimer_text = ABS_Settings::get_setting('personalization_disclaimer', __('This is an embroidered product - image is for visualization purposes', 'advanced-bundle-system'));
         ?>
         <div class="abs-personalization-fields">
             <div class="abs-personalization-field">
@@ -162,12 +166,12 @@ class ABS_Frontend {
 
             <div class="abs-personalization-preview-trigger">
                 <button type="button" class="abs-show-preview" data-product-id="<?php echo $product_id; ?>" data-unique-id="<?php echo $unique_id; ?>">
-                    <?php _e('Preview Personalization', 'advanced-bundle-system'); ?>
+                    <?php echo esc_html($preview_button_text); ?>
                 </button>
             </div>
 
             <div class="abs-personalization-disclaimer">
-                <small><?php _e('This is an embroidered product - image is for visualization purposes', 'advanced-bundle-system'); ?></small>
+                <small><?php echo esc_html($disclaimer_text); ?></small>
             </div>
         </div>
         <?php
