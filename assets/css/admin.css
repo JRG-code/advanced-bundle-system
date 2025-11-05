@@ -285,12 +285,14 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
 .wp-list-table .column-abs_inventory {
     width: 120px;
     text-align: left;
+    white-space: nowrap;
 }
 
 .wp-list-table .column-abs_inventory small {
     display: block;
     margin-top: 3px;
     font-size: 12px;
+    white-space: normal;
 }
 
 /* Responsive Admin Styles */

@@ -94,7 +94,11 @@ class ABS_Admin {
 
             $product = wc_get_product($product_id);
             if ($product) {
-                $price = floatval($product->get_price());
+                // Use regular price for original total calculation
+                $regular = $product->get_regular_price();
+                // If no regular price, fall back to current price
+                $price = $regular !== '' ? floatval($regular) : floatval($product->get_price());
+
                 if ($price > 0) {
                     $original_total += $price * $quantity;
                 }
