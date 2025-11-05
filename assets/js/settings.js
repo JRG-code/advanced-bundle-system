@@ -46,7 +46,8 @@
             // Update discount format
             var discountFormat = $('#abs_settings_discount_format').val();
             if (discountFormat) {
-                var preview = discountFormat.replace('%s', '20');
+                // Replace %s with 20, and %% with single %
+                var preview = discountFormat.replace('%s', '20').replace(/%%/g, '%');
                 $('#preview-discount-badge').text(preview);
             }
 

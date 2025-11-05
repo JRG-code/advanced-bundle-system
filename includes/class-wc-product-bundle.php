@@ -113,7 +113,11 @@ class WC_Product_Bundle extends WC_Product {
         foreach ($bundle_products as $product_id) {
             $product = wc_get_product($product_id);
             if ($product) {
-                $total += floatval($product->get_price());
+                // Use regular price, not sale price, for calculating bundle original total
+                $regular = $product->get_regular_price();
+                // If no regular price, fall back to current price
+                $price = $regular !== '' ? floatval($regular) : floatval($product->get_price());
+                $total += $price;
             }
         }
         return $total > 0 ? $total : '';
