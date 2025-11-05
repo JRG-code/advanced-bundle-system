@@ -33,11 +33,13 @@
                 e.preventDefault();
                 $(this).closest('tr').remove();
                 self.updatePricingSummary();
+                self.updateBaseProductsList();
             });
 
             // Update pricing on changes
             $(document).on('change', '.abs-product-search, .abs-item-quantity', function() {
                 self.updatePricingSummary();
+                self.updateBaseProductsList();
             });
 
             $(document).on('change keyup', '#_bundle_price', function() {
@@ -168,6 +170,55 @@
                     $('#abs_discount_percent').text('-');
                 }
             });
+        },
+
+        updateBaseProductsList: function() {
+            var $baseProductsList = $('#abs_base_products_list');
+            if ($baseProductsList.length === 0) {
+                return; // Not on Linked Products tab
+            }
+
+            // Collect all bundle items and group by product
+            var productQuantities = {};
+            $('#abs_bundle_items_tbody tr').each(function() {
+                var $select = $(this).find('.abs-product-search');
+                var productId = $select.val();
+                var productText = $select.find('option:selected').text();
+                var quantity = parseInt($(this).find('.abs-item-quantity').val()) || 1;
+
+                if (productId) {
+                    if (productQuantities[productId]) {
+                        productQuantities[productId].quantity += quantity;
+                    } else {
+                        productQuantities[productId] = {
+                            quantity: quantity,
+                            name: productText
+                        };
+                    }
+                }
+            });
+
+            // Build the HTML
+            var html = '';
+            var hasProducts = false;
+
+            if (Object.keys(productQuantities).length > 0) {
+                html = '<ul style="margin: 0; padding-left: 20px;">';
+                $.each(productQuantities, function(productId, data) {
+                    hasProducts = true;
+                    var quantityLabel = data.quantity > 1 ? '<strong>' + data.quantity + 'x </strong>' : '';
+                    // Extract product name from the select option text (remove the price part)
+                    var productName = data.name.split(' - ')[0];
+                    html += '<li style="margin: 5px 0;">' + quantityLabel + productName + ' <span style="color: #999;">(#' + productId + ')</span></li>';
+                });
+                html += '</ul>';
+            }
+
+            if (!hasProducts) {
+                html = '<p style="margin: 0; color: #999; font-style: italic;">No products added to bundle yet.</p>';
+            }
+
+            $baseProductsList.html(html);
         }
     };
 

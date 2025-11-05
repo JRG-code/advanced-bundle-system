@@ -12,6 +12,7 @@ class ABS_Product_Type {
     public function __construct() {
         add_filter('product_type_selector', array($this, 'add_product_type'));
         add_action('woocommerce_product_options_general_product_data', array($this, 'add_bundle_fields_to_general_tab'));
+        add_action('woocommerce_product_options_related', array($this, 'add_base_products_to_linked_products'));
         add_action('woocommerce_process_product_meta', array($this, 'save_product_data'));
     }
 
@@ -223,6 +224,71 @@ class ABS_Product_Type {
             update_post_meta($post_id, '_bundle_price', $bundle_price);
             update_post_meta($post_id, '_price', $bundle_price);
         }
+    }
+
+    /**
+     * Add base products section to Linked Products tab
+     */
+    public function add_base_products_to_linked_products() {
+        global $post;
+
+        // Only show for bundle products
+        $product = wc_get_product($post->ID);
+        if (!$product || 'bundle' !== $product->get_type()) {
+            return;
+        }
+
+        $bundle_items = get_post_meta($post->ID, '_bundle_items', true);
+        if (empty($bundle_items) || !is_array($bundle_items)) {
+            return;
+        }
+
+        ?>
+        <div class="options_group show_if_bundle">
+            <p class="form-field">
+                <label><?php _e('Base Products', 'advanced-bundle-system'); ?></label>
+                <span class="description" style="display: block; margin: 5px 0 10px 0;">
+                    <?php _e('Products included in this bundle (automatically populated from bundle configuration)', 'advanced-bundle-system'); ?>
+                </span>
+                <div id="abs_base_products_list" style="padding: 10px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+                    <?php
+                    // Group products by ID to show quantities
+                    $product_quantities = array();
+                    foreach ($bundle_items as $item) {
+                        $product_id = $item['product_id'];
+                        $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+
+                        if (isset($product_quantities[$product_id])) {
+                            $product_quantities[$product_id] += $quantity;
+                        } else {
+                            $product_quantities[$product_id] = $quantity;
+                        }
+                    }
+
+                    if (!empty($product_quantities)) {
+                        echo '<ul style="margin: 0; padding-left: 20px;">';
+                        foreach ($product_quantities as $product_id => $total_quantity) {
+                            $bundled_product = wc_get_product($product_id);
+                            if ($bundled_product) {
+                                $quantity_label = $total_quantity > 1 ? $total_quantity . 'x ' : '';
+                                echo '<li style="margin: 5px 0;">';
+                                echo '<strong>' . esc_html($quantity_label) . '</strong>';
+                                echo '<a href="' . esc_url(get_edit_post_link($product_id)) . '" target="_blank">';
+                                echo esc_html($bundled_product->get_name());
+                                echo '</a>';
+                                echo ' <span style="color: #999;">(#' . esc_html($product_id) . ')</span>';
+                                echo '</li>';
+                            }
+                        }
+                        echo '</ul>';
+                    } else {
+                        echo '<p style="margin: 0; color: #999; font-style: italic;">' . __('No products added to bundle yet.', 'advanced-bundle-system') . '</p>';
+                    }
+                    ?>
+                </div>
+            </p>
+        </div>
+        <?php
     }
 
     /**
