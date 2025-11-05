@@ -50,28 +50,10 @@ function abs_woocommerce_missing_notice() {
  * Initialize the plugin update checker
  */
 function abs_init_update_checker() {
-    // Only load update checker if the library exists
-    $update_checker_file = ABS_PLUGIN_DIR . 'plugin-update-checker/plugin-update-checker.php';
-
-    if (file_exists($update_checker_file)) {
-        try {
-            require $update_checker_file;
-
-            if (class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
-                $myUpdateChecker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-                    'https://github.com/JRG-code/advanced-bundle-system',
-                    __FILE__,
-                    'advanced-bundle-system'
-                );
-
-                // Set the branch that contains the stable release
-                $myUpdateChecker->setBranch('main');
-            }
-        } catch (Exception $e) {
-            // Silently fail if update checker has issues
-            error_log('Advanced Bundle System: Update checker error - ' . $e->getMessage());
-        }
-    }
+    // Update checker disabled due to missing Parsedown dependency
+    // To enable updates via GitHub, install the plugin update checker library
+    // with all its dependencies including Parsedown
+    return;
 }
 
 /**
