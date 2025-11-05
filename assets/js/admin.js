@@ -51,6 +51,9 @@
             var productType = $('#product-type').val();
 
             if (productType === 'bundle') {
+                // Add class to body for CSS targeting
+                $('body').addClass('product-type-bundle');
+
                 $('.show_if_bundle').show();
                 $('.hide_if_bundle').hide();
 
@@ -58,11 +61,33 @@
                 $('.show_if_simple').hide();
                 $('.show_if_variable').hide();
 
+                // Hide inventory tab and stock management fields
+                $('.inventory_options.inventory_tab').hide();
+                $('#inventory_product_data').hide();
+                $('._manage_stock_field').hide();
+                $('._stock_status_field').hide();
+                $('._stock_field').hide();
+                $('._backorders_field').hide();
+                $('._low_stock_amount_field').hide();
+                $('._sold_individually_field').hide();
+                $('._sku_field').hide();
+                $('._gtin_field').hide();
+                $('._upc_field').hide();
+                $('._ean_field').hide();
+                $('._isbn_field').hide();
+
                 // Show bundle tab
                 $('.bundle_options').addClass('active');
                 $('#bundle_product_data').show();
             } else {
+                // Remove class from body
+                $('body').removeClass('product-type-bundle');
+
                 $('.show_if_bundle').hide();
+
+                // Restore inventory fields for non-bundle products
+                $('.inventory_options.inventory_tab').show();
+                $('._sku_field').show();
             }
         },
 
@@ -98,7 +123,8 @@
                         return {
                             action: 'abs_search_products',
                             term: params.term,
-                            nonce: $('#abs_search_nonce').val() || ''
+                            nonce: $('#abs_search_nonce').val() || '',
+                            exclude_id: $('#abs_current_product_id').val() || 0
                         };
                     },
                     processResults: function(data) {
