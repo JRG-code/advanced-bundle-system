@@ -281,6 +281,18 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
     content: "\f316"; /* Package icon */
 }
 
+/* Inventory Column in Products List */
+.wp-list-table .column-abs_inventory {
+    width: 120px;
+    text-align: left;
+}
+
+.wp-list-table .column-abs_inventory small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+}
+
 /* Responsive Admin Styles */
 @media (max-width: 782px) {
     #abs_bundle_products,
@@ -292,5 +304,9 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
+    }
+
+    .wp-list-table .column-abs_inventory {
+        width: auto;
     }
 }
