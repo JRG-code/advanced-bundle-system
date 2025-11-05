@@ -11,10 +11,8 @@ class ABS_Product_Type {
 
     public function __construct() {
         add_filter('product_type_selector', array($this, 'add_product_type'));
-        add_filter('woocommerce_product_data_tabs', array($this, 'add_product_data_tab'));
-        add_action('woocommerce_product_data_panels', array($this, 'add_product_data_panel'));
+        add_action('woocommerce_product_options_general_product_data', array($this, 'add_bundle_fields_to_general_tab'));
         add_action('woocommerce_process_product_meta', array($this, 'save_product_data'));
-        add_action('woocommerce_product_options_general_product_data', array($this, 'add_bundle_pricing_fields'));
     }
 
     /**
@@ -26,24 +24,18 @@ class ABS_Product_Type {
     }
 
     /**
-     * Add bundle tab to product data
+     * Add all bundle fields to the General tab
      */
-    public function add_product_data_tab($tabs) {
-        $tabs['bundle'] = array(
-            'label' => __('Bundle Products', 'advanced-bundle-system'),
-            'target' => 'bundle_product_data',
-            'class' => array('show_if_bundle'),
-            'priority' => 60,
-        );
-        return $tabs;
-    }
-
-    /**
-     * Add bundle pricing fields
-     */
-    public function add_bundle_pricing_fields() {
+    public function add_bundle_fields_to_general_tab() {
         global $post;
+
+        $bundle_items = get_post_meta($post->ID, '_bundle_items', true);
+        if (!is_array($bundle_items)) {
+            $bundle_items = array();
+        }
         ?>
+
+        <!-- Bundle Price Field -->
         <div class="options_group show_if_bundle">
             <?php
             woocommerce_wp_text_input(array(
@@ -59,33 +51,21 @@ class ABS_Product_Type {
             ));
             ?>
         </div>
-        <?php
-    }
 
-    /**
-     * Add bundle product data panel
-     */
-    public function add_product_data_panel() {
-        global $post;
+        <!-- Bundle Items Configuration -->
+        <div class="options_group show_if_bundle">
+            <h4 style="padding: 0 12px;"><?php _e('Bundle Products', 'advanced-bundle-system'); ?></h4>
+            <p style="padding: 0 12px; color: #666;"><?php _e('Add products to this bundle. You can add the same product multiple times with different quantities or attributes.', 'advanced-bundle-system'); ?></p>
 
-        $bundle_items = get_post_meta($post->ID, '_bundle_items', true);
-        if (!is_array($bundle_items)) {
-            $bundle_items = array();
-        }
-        ?>
-        <div id="bundle_product_data" class="panel woocommerce_options_panel">
-            <div class="options_group">
-                <h4><?php _e('Bundle Products', 'advanced-bundle-system'); ?></h4>
-                <p><?php _e('Add products to this bundle. You can add the same product multiple times.', 'advanced-bundle-system'); ?></p>
-
-                <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px;">
+                <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px);">
                     <thead>
                         <tr>
-                            <th style="width: 40%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 10%;"><?php _e('Quantity', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 15%;"><?php _e('Enable Personalization', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 30%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 8%;"><?php _e('Quantity', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 10%;"><?php _e('Ask Attributes', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 12%;"><?php _e('Personalization', 'advanced-bundle-system'); ?></th>
                             <th style="width: 20%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 10%;"><?php _e('Max Characters', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 10%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
@@ -101,20 +81,20 @@ class ABS_Product_Type {
                     </tbody>
                 </table>
 
-                <p style="margin-top: 10px;">
+                <p style="margin: 10px 12px;">
                     <button type="button" id="abs_add_bundle_item" class="button">
                         <?php _e('Add Product', 'advanced-bundle-system'); ?>
                     </button>
                 </p>
-            </div>
+        </div>
 
-            <div class="options_group">
-                <h4><?php _e('Bundle Pricing Summary', 'advanced-bundle-system'); ?></h4>
-                <div id="abs_pricing_summary" style="padding: 10px; background: #f8f8f8; margin: 10px;">
-                    <p><strong><?php _e('Original Total:', 'advanced-bundle-system'); ?></strong> <span id="abs_original_total">-</span></p>
-                    <p><strong><?php _e('Bundle Price:', 'advanced-bundle-system'); ?></strong> <span id="abs_bundle_price_display">-</span></p>
-                    <p><strong><?php _e('Discount:', 'advanced-bundle-system'); ?></strong> <span id="abs_discount_percent">-</span></p>
-                </div>
+        <!-- Bundle Pricing Summary -->
+        <div class="options_group show_if_bundle">
+            <h4 style="padding: 0 12px;"><?php _e('Bundle Pricing Summary', 'advanced-bundle-system'); ?></h4>
+            <div id="abs_pricing_summary" style="padding: 10px; background: #f8f8f8; margin: 10px 12px;">
+                <p><strong><?php _e('Original Total:', 'advanced-bundle-system'); ?></strong> <span id="abs_original_total">-</span></p>
+                <p><strong><?php _e('Bundle Price:', 'advanced-bundle-system'); ?></strong> <span id="abs_bundle_price_display">-</span></p>
+                <p><strong><?php _e('Discount:', 'advanced-bundle-system'); ?></strong> <span id="abs_discount_percent">-</span></p>
             </div>
         </div>
 
@@ -131,6 +111,7 @@ class ABS_Product_Type {
     private function render_bundle_item_row($index, $item = array(), $product = null) {
         $product_id = isset($item['product_id']) ? $item['product_id'] : '';
         $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+        $ask_attributes = isset($item['ask_attributes']) ? $item['ask_attributes'] : 'no';
         $enable_personalization = isset($item['enable_personalization']) ? $item['enable_personalization'] : 'no';
         $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
         $max_characters = isset($item['max_characters']) ? $item['max_characters'] : 50;
@@ -150,16 +131,24 @@ class ABS_Product_Type {
                     <?php endif; ?>
                 </select>
             </td>
-            <td>
+            <td style="text-align: center;">
                 <input type="number"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][quantity]"
                        value="<?php echo esc_attr($quantity); ?>"
                        min="1"
                        step="1"
                        class="abs-item-quantity"
-                       style="width: 60px;" />
+                       style="width: 50px;" />
             </td>
-            <td>
+            <td style="text-align: center;">
+                <input type="checkbox"
+                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][ask_attributes]"
+                       value="yes"
+                       class="abs-ask-attributes"
+                       title="<?php _e('Ask customer to select attributes (size, color, etc.) for each item', 'advanced-bundle-system'); ?>"
+                       <?php checked($ask_attributes, 'yes'); ?> />
+            </td>
+            <td style="text-align: center;">
                 <input type="checkbox"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][enable_personalization]"
                        value="yes"
@@ -206,6 +195,7 @@ class ABS_Product_Type {
                     $bundle_items[] = array(
                         'product_id' => intval($item['product_id']),
                         'quantity' => isset($item['quantity']) ? max(1, intval($item['quantity'])) : 1,
+                        'ask_attributes' => isset($item['ask_attributes']) ? 'yes' : 'no',
                         'enable_personalization' => isset($item['enable_personalization']) ? 'yes' : 'no',
                         'personalization_label' => isset($item['personalization_label']) ? sanitize_text_field($item['personalization_label']) : __('Enter text:', 'advanced-bundle-system'),
                         'max_characters' => isset($item['max_characters']) ? max(1, min(100, intval($item['max_characters']))) : 50

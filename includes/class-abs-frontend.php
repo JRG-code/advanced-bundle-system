@@ -38,6 +38,7 @@ class ABS_Frontend {
         foreach ($bundle_items as $index => $item) {
             $product_id = $item['product_id'];
             $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+            $ask_attributes = isset($item['ask_attributes']) && $item['ask_attributes'] === 'yes';
             $enable_personalization = isset($item['enable_personalization']) && $item['enable_personalization'] === 'yes';
 
             $bundled_product = wc_get_product($product_id);
@@ -45,7 +46,7 @@ class ABS_Frontend {
                 continue;
             }
 
-            // For products with quantity > 1, create separate entries for personalization
+            // For products with quantity > 1, create separate entries for attributes/personalization
             for ($q = 0; $q < $quantity; $q++) {
                 $unique_id = $item_counter++;
                 $display_name = $bundled_product->get_name();
@@ -64,6 +65,11 @@ class ABS_Frontend {
                 echo '<h4>' . esc_html($display_name) . '</h4>';
                 echo '<p class="price">' . $bundled_product->get_price_html() . '</p>';
 
+                // Add attribute selectors if enabled for this item
+                if ($ask_attributes) {
+                    $this->display_attribute_fields($bundled_product, $product_id, $unique_id);
+                }
+
                 // Add personalization fields if enabled for this item
                 if ($enable_personalization) {
                     $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
@@ -78,6 +84,59 @@ class ABS_Frontend {
         }
 
         echo '</div>';
+        echo '</div>';
+    }
+
+    /**
+     * Display attribute fields for products with variations
+     */
+    private function display_attribute_fields($product, $product_id, $unique_id) {
+        $attributes = $product->get_attributes();
+
+        if (empty($attributes)) {
+            return;
+        }
+
+        echo '<div class="abs-attribute-fields">';
+
+        foreach ($attributes as $attribute_name => $attribute) {
+            // Handle both taxonomy and custom attributes
+            if ($attribute->is_taxonomy()) {
+                $taxonomy = $attribute->get_taxonomy_object();
+                $attribute_label = $taxonomy ? $taxonomy->attribute_label : $attribute_name;
+                $terms = wc_get_product_terms($product_id, $attribute_name, array('fields' => 'all'));
+            } else {
+                $attribute_label = $attribute->get_name();
+                $terms = $attribute->get_options();
+            }
+
+            if (empty($terms)) {
+                continue;
+            }
+
+            echo '<div class="abs-attribute-field">';
+            echo '<label for="abs_attribute_' . esc_attr($attribute_name) . '_' . esc_attr($unique_id) . '">';
+            echo esc_html($attribute_label) . ':';
+            echo '</label>';
+            echo '<select name="abs_attributes[' . esc_attr($unique_id) . '][' . esc_attr($attribute_name) . ']" ';
+            echo 'id="abs_attribute_' . esc_attr($attribute_name) . '_' . esc_attr($unique_id) . '" ';
+            echo 'class="abs-attribute-select" required>';
+            echo '<option value="">' . sprintf(__('Choose %s', 'advanced-bundle-system'), esc_html($attribute_label)) . '</option>';
+
+            if ($attribute->is_taxonomy() && is_array($terms)) {
+                foreach ($terms as $term) {
+                    echo '<option value="' . esc_attr($term->slug) . '">' . esc_html($term->name) . '</option>';
+                }
+            } else {
+                foreach ($terms as $term) {
+                    echo '<option value="' . esc_attr($term) . '">' . esc_html($term) . '</option>';
+                }
+            }
+
+            echo '</select>';
+            echo '</div>';
+        }
+
         echo '</div>';
     }
 
