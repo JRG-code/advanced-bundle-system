@@ -1,0 +1,50 @@
+# WordPress
+wp-config.php
+wp-content/uploads/
+wp-content/blogs.dir/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/cache/
+wp-content/backups/
+
+# IDE and Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+access_log
+
+# Composer
+vendor/
+composer.lock
+
+# NPM
+node_modules/
+npm-debug.log
+package-lock.json
+
+# Build files
+*.min.js
+*.min.css
+.sass-cache/
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*~
+*.swp
+*.swo
+*.tmp

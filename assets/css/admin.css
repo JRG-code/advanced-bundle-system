@@ -1,0 +1,168 @@
+/**
+ * Admin Styles for Advanced Bundle System
+ */
+
+/* Bundle Product Data Panel */
+#bundle_product_data {
+    padding: 12px;
+}
+
+#bundle_product_data .options_group {
+    padding: 12px;
+    margin: 0 0 12px;
+    border-bottom: 1px solid #eee;
+}
+
+#bundle_product_data .options_group:last-child {
+    border-bottom: none;
+}
+
+#bundle_product_data h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Product Search Select */
+#abs_bundle_products {
+    width: 100% !important;
+    max-width: 600px;
+}
+
+.select2-container {
+    max-width: 600px;
+}
+
+/* Pricing Summary */
+#abs_pricing_summary {
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px !important;
+    margin: 10px 0 !important;
+}
+
+#abs_pricing_summary p {
+    margin: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#abs_pricing_summary strong {
+    font-weight: 600;
+}
+
+#abs_pricing_summary span {
+    font-family: monospace;
+    font-size: 14px;
+}
+
+/* Bundle Price Input */
+.show_if_bundle {
+    display: none;
+}
+
+#product-type[value="bundle"] ~ .show_if_bundle,
+body.post-type-product .show_if_bundle {
+    display: block;
+}
+
+/* Personalization Checkbox */
+#bundle_product_data label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+#bundle_product_data input[type="checkbox"] {
+    margin: 0;
+}
+
+/* Admin Order Items */
+.abs-personalization-column {
+    text-align: left;
+    padding: 8px;
+}
+
+.abs-personalization-column small {
+    display: block;
+    color: #666;
+    font-style: italic;
+}
+
+/* Loading States */
+.abs-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.abs-loading::after {
+    content: "Loading...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Notices and Alerts */
+.abs-notice {
+    margin: 12px 0;
+    padding: 12px;
+    border-left: 4px solid #2196f3;
+    background: #e3f2fd;
+}
+
+.abs-notice.success {
+    border-left-color: #4caf50;
+    background: #e8f5e9;
+}
+
+.abs-notice.warning {
+    border-left-color: #ff9800;
+    background: #fff3e0;
+}
+
+.abs-notice.error {
+    border-left-color: #f44336;
+    background: #ffebee;
+}
+
+/* Discount Display in Pricing Summary */
+#abs_discount_percent {
+    color: #4caf50;
+    font-weight: 600;
+}
+
+/* Help Text */
+.abs-help-text {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Bundle Product Icons */
+.product-type-bundle .dashicons-before:before {
+    content: "\f316"; /* Package icon */
+}
+
+/* Responsive Admin Styles */
+@media (max-width: 782px) {
+    #abs_bundle_products,
+    .select2-container {
+        max-width: 100%;
+    }
+
+    #abs_pricing_summary p {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
