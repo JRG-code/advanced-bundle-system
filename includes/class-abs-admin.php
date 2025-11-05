@@ -16,7 +16,7 @@ class ABS_Admin {
     }
 
     /**
-     * Add product search script for Select2
+     * Add product search script and nonces
      */
     public function add_product_search_script() {
         global $post;
@@ -24,69 +24,8 @@ class ABS_Admin {
             return;
         }
         ?>
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            // Initialize Select2 for product search
-            $('#abs_bundle_products').selectWoo({
-                ajax: {
-                    url: ajaxurl,
-                    dataType: 'json',
-                    delay: 250,
-                    data: function(params) {
-                        return {
-                            action: 'abs_search_products',
-                            term: params.term,
-                            nonce: '<?php echo wp_create_nonce('abs-search-products'); ?>'
-                        };
-                    },
-                    processResults: function(data) {
-                        return {
-                            results: data
-                        };
-                    },
-                    cache: true
-                },
-                minimumInputLength: 2,
-                placeholder: '<?php _e('Search for products', 'advanced-bundle-system'); ?>'
-            });
-
-            // Update pricing summary when products or bundle price changes
-            function updatePricingSummary() {
-                var productIds = $('#abs_bundle_products').val();
-                var bundlePrice = $('#_bundle_price').val();
-
-                if (!productIds || productIds.length === 0) {
-                    $('#abs_original_total').text('-');
-                    $('#abs_bundle_price_display').text('-');
-                    $('#abs_discount_percent').text('-');
-                    return;
-                }
-
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'abs_calculate_bundle_pricing',
-                        product_ids: productIds,
-                        bundle_price: bundlePrice,
-                        nonce: '<?php echo wp_create_nonce('abs-calculate-pricing'); ?>'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $('#abs_original_total').text(response.data.original_total_formatted);
-                            $('#abs_bundle_price_display').text(response.data.bundle_price_formatted);
-                            $('#abs_discount_percent').text(response.data.discount_percent + '%');
-                        }
-                    }
-                });
-            }
-
-            $('#abs_bundle_products, #_bundle_price').on('change', updatePricingSummary);
-
-            // Initial calculation
-            updatePricingSummary();
-        });
-        </script>
+        <input type="hidden" id="abs_search_nonce" value="<?php echo wp_create_nonce('abs-search-products'); ?>" />
+        <input type="hidden" id="abs_pricing_nonce" value="<?php echo wp_create_nonce('abs-calculate-pricing'); ?>" />
         <?php
     }
 
@@ -127,10 +66,22 @@ class ABS_Admin {
     public function ajax_calculate_bundle_pricing() {
         check_ajax_referer('abs-calculate-pricing', 'nonce');
 
-        $product_ids = isset($_POST['product_ids']) ? array_map('intval', $_POST['product_ids']) : array();
+        $bundle_items = isset($_POST['bundle_items']) ? $_POST['bundle_items'] : array();
         $bundle_price = isset($_POST['bundle_price']) ? floatval($_POST['bundle_price']) : 0;
 
-        $original_total = ABS_Product_Type::get_bundle_products_total($product_ids);
+        $original_total = 0;
+
+        // Calculate total based on products and quantities
+        foreach ($bundle_items as $item) {
+            $product_id = intval($item['product_id']);
+            $quantity = intval($item['quantity']);
+
+            $product = wc_get_product($product_id);
+            if ($product) {
+                $original_total += $product->get_price() * $quantity;
+            }
+        }
+
         $discount_percent = ABS_Product_Type::calculate_discount($original_total, $bundle_price);
 
         wp_send_json_success(array(

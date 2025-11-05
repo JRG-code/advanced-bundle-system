@@ -24,39 +24,57 @@ class ABS_Frontend {
             return;
         }
 
-        $bundle_products = get_post_meta($product->get_id(), '_bundle_products', true);
-        if (empty($bundle_products)) {
+        $bundle_items = get_post_meta($product->get_id(), '_bundle_items', true);
+        if (empty($bundle_items) || !is_array($bundle_items)) {
             return;
         }
-
-        $enable_personalization = get_post_meta($product->get_id(), '_bundle_enable_personalization', true);
 
         echo '<div class="abs-bundle-products">';
         echo '<h3>' . __('This bundle includes:', 'advanced-bundle-system') . '</h3>';
         echo '<div class="abs-bundle-items">';
 
-        foreach ($bundle_products as $product_id) {
+        $item_counter = 0; // Counter for unique IDs when same product appears multiple times
+
+        foreach ($bundle_items as $index => $item) {
+            $product_id = $item['product_id'];
+            $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+            $enable_personalization = isset($item['enable_personalization']) && $item['enable_personalization'] === 'yes';
+
             $bundled_product = wc_get_product($product_id);
             if (!$bundled_product) {
                 continue;
             }
 
-            echo '<div class="abs-bundle-item" data-product-id="' . esc_attr($product_id) . '">';
-            echo '<div class="abs-bundle-item-image">';
-            echo $bundled_product->get_image('thumbnail');
-            echo '</div>';
+            // For products with quantity > 1, create separate entries for personalization
+            for ($q = 0; $q < $quantity; $q++) {
+                $unique_id = $item_counter++;
+                $display_name = $bundled_product->get_name();
 
-            echo '<div class="abs-bundle-item-details">';
-            echo '<h4>' . esc_html($bundled_product->get_name()) . '</h4>';
-            echo '<p class="price">' . $bundled_product->get_price_html() . '</p>';
+                // Add number if quantity > 1
+                if ($quantity > 1) {
+                    $display_name .= ' #' . ($q + 1);
+                }
 
-            // Add personalization fields if enabled
-            if ($enable_personalization === 'yes') {
-                $this->display_personalization_fields($product_id);
+                echo '<div class="abs-bundle-item" data-product-id="' . esc_attr($product_id) . '" data-item-index="' . esc_attr($unique_id) . '">';
+                echo '<div class="abs-bundle-item-image">';
+                echo $bundled_product->get_image('thumbnail');
+                echo '</div>';
+
+                echo '<div class="abs-bundle-item-details">';
+                echo '<h4>' . esc_html($display_name) . '</h4>';
+                echo '<p class="price">' . $bundled_product->get_price_html() . '</p>';
+
+                // Add personalization fields if enabled for this item
+                if ($enable_personalization) {
+                    $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
+                    $max_characters = isset($item['max_characters']) ? intval($item['max_characters']) : 50;
+
+                    $this->display_personalization_fields($product_id, $unique_id, $personalization_label, $max_characters);
+                }
+
+                echo '</div>';
+                echo '</div>';
             }
-
-            echo '</div>';
-            echo '</div>';
         }
 
         echo '</div>';
@@ -66,23 +84,25 @@ class ABS_Frontend {
     /**
      * Display personalization fields
      */
-    private function display_personalization_fields($product_id) {
+    private function display_personalization_fields($product_id, $unique_id, $label, $max_characters) {
+        $placeholder = sprintf(__('Enter text (max %d characters)', 'advanced-bundle-system'), $max_characters);
         ?>
         <div class="abs-personalization-fields">
             <div class="abs-personalization-field">
-                <label for="abs_personalization_text_<?php echo $product_id; ?>">
-                    <?php _e('Personalization Text:', 'advanced-bundle-system'); ?>
+                <label for="abs_personalization_text_<?php echo $unique_id; ?>">
+                    <?php echo esc_html($label); ?>
                 </label>
                 <input type="text"
-                       id="abs_personalization_text_<?php echo $product_id; ?>"
-                       name="abs_personalization[<?php echo $product_id; ?>][text]"
+                       id="abs_personalization_text_<?php echo $unique_id; ?>"
+                       name="abs_personalization[<?php echo $unique_id; ?>][text]"
+                       data-product-id="<?php echo esc_attr($product_id); ?>"
                        class="abs-personalization-input"
-                       maxlength="50"
-                       placeholder="<?php _e('Enter text (max 50 characters)', 'advanced-bundle-system'); ?>" />
+                       maxlength="<?php echo esc_attr($max_characters); ?>"
+                       placeholder="<?php echo esc_attr($placeholder); ?>" />
             </div>
 
             <div class="abs-personalization-preview-trigger">
-                <button type="button" class="abs-show-preview" data-product-id="<?php echo $product_id; ?>">
+                <button type="button" class="abs-show-preview" data-product-id="<?php echo $product_id; ?>" data-unique-id="<?php echo $unique_id; ?>">
                     <?php _e('Preview Personalization', 'advanced-bundle-system'); ?>
                 </button>
             </div>

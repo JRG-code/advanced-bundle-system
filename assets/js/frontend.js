@@ -60,7 +60,13 @@
 
             var $button = $(this);
             var productId = $button.data('product-id');
-            var $input = $('#abs_personalization_text_' + productId);
+            var uniqueId = $button.data('unique-id');
+
+            // Get the text from the input with unique ID
+            var $input = uniqueId !== undefined
+                ? $('#abs_personalization_text_' + uniqueId)
+                : $('#abs_personalization_text_' + productId);
+
             var text = $input.val();
 
             if (!text || text.trim() === '') {
