@@ -125,6 +125,7 @@ class Advanced_Bundle_System {
      */
     private function includes() {
         $includes = array(
+            'includes/class-wc-product-bundle.php',
             'includes/class-abs-product-type.php',
             'includes/class-abs-admin.php',
             'includes/class-abs-frontend.php',
