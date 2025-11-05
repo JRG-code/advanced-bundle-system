@@ -2,25 +2,21 @@
  * Settings Page Styles
  */
 
-/* Layout */
-.abs-settings-layout {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 30px;
+/* Buttons */
+.abs-settings-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
     margin-top: 20px;
 }
 
-.abs-settings-form {
-    min-width: 0;
+.abs-settings-buttons .button {
+    margin: 0 !important;
 }
 
+/* Preview Panel */
 .abs-settings-preview {
-    position: relative;
-}
-
-.abs-preview-sticky {
-    position: sticky;
-    top: 32px;
+    margin-top: 30px;
     background: #fff;
     border: 1px solid #c3c4c7;
     border-radius: 4px;
@@ -28,13 +24,13 @@
     box-shadow: 0 1px 1px rgba(0,0,0,.04);
 }
 
-.abs-preview-sticky h2 {
+.abs-preview-container h2 {
     margin: 0 0 5px 0;
     font-size: 18px;
     font-weight: 600;
 }
 
-.abs-preview-sticky > .description {
+.abs-preview-container > .description {
     margin: 0 0 20px 0;
     color: #646970;
     font-size: 13px;
@@ -228,19 +224,13 @@
 }
 
 /* Responsive */
-@media (max-width: 1280px) {
-    .abs-settings-layout {
-        grid-template-columns: 1fr 350px;
-    }
-}
-
-@media (max-width: 1024px) {
-    .abs-settings-layout {
-        grid-template-columns: 1fr;
+@media (max-width: 782px) {
+    .abs-settings-buttons {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
-    .abs-preview-sticky {
-        position: relative;
-        top: 0;
+    .abs-settings-buttons .button {
+        width: 100%;
     }
 }

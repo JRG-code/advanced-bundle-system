@@ -217,21 +217,24 @@ class ABS_Settings {
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
-            <div class="abs-settings-layout">
-                <div class="abs-settings-form">
-                    <form action="options.php" method="post">
-                        <?php
-                        settings_fields('abs_settings_group');
-                        do_settings_sections('abs-settings');
-                        submit_button(__('Save Settings', 'advanced-bundle-system'));
-                        ?>
-                    </form>
-                </div>
+            <form action="options.php" method="post">
+                <?php
+                settings_fields('abs_settings_group');
+                do_settings_sections('abs-settings');
+                ?>
 
-                <div class="abs-settings-preview">
-                    <div class="abs-preview-sticky">
-                        <h2><?php _e('Live Preview', 'advanced-bundle-system'); ?></h2>
-                        <p class="description"><?php _e('See your changes in real-time as you type', 'advanced-bundle-system'); ?></p>
+                <div class="abs-settings-buttons">
+                    <?php submit_button(__('Save Settings', 'advanced-bundle-system'), 'primary', 'submit', false); ?>
+                    <button type="button" id="abs-generate-preview" class="button button-secondary">
+                        <?php _e('Generate Preview', 'advanced-bundle-system'); ?>
+                    </button>
+                </div>
+            </form>
+
+            <div class="abs-settings-preview" id="abs-settings-preview" style="display: none;">
+                <div class="abs-preview-container">
+                    <h2><?php _e('Preview', 'advanced-bundle-system'); ?></h2>
+                    <p class="description"><?php _e('Preview of your customized text', 'advanced-bundle-system'); ?></p>
 
                         <!-- Product Page Preview -->
                         <div class="abs-preview-section">
