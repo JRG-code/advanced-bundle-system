@@ -27,37 +27,51 @@ define('ABS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ABS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ABS_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
-// Include the update checker
-require ABS_PLUGIN_DIR . 'plugin-update-checker/plugin-update-checker.php';
-
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
-
-$myUpdateChecker = PucFactory::buildUpdateChecker(
-    'https://github.com/JRG-code/advanced-bundle-system',
-    __FILE__,
-    'advanced-bundle-system'
-);
-
-// Set the branch that contains the stable release
-$myUpdateChecker->setBranch('main');
-
-// Optional: If your repository is private, specify the access token
-// $myUpdateChecker->setAuthentication('your-token-here');
-
 /**
  * Check if WooCommerce is active
  */
-if (!in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
-    add_action('admin_notices', 'abs_woocommerce_missing_notice');
-    return;
+function abs_is_woocommerce_active() {
+    return in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins'))) ||
+           (is_multisite() && array_key_exists('woocommerce/woocommerce.php', get_site_option('active_sitewide_plugins', array())));
 }
 
+/**
+ * Display admin notice if WooCommerce is not active
+ */
 function abs_woocommerce_missing_notice() {
     ?>
     <div class="notice notice-error">
         <p><?php _e('Advanced Bundle System requires WooCommerce to be installed and active.', 'advanced-bundle-system'); ?></p>
     </div>
     <?php
+}
+
+/**
+ * Initialize the plugin update checker
+ */
+function abs_init_update_checker() {
+    // Only load update checker if the library exists
+    $update_checker_file = ABS_PLUGIN_DIR . 'plugin-update-checker/plugin-update-checker.php';
+
+    if (file_exists($update_checker_file)) {
+        try {
+            require $update_checker_file;
+
+            if (class_exists('YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
+                $myUpdateChecker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+                    'https://github.com/JRG-code/advanced-bundle-system',
+                    __FILE__,
+                    'advanced-bundle-system'
+                );
+
+                // Set the branch that contains the stable release
+                $myUpdateChecker->setBranch('main');
+            }
+        } catch (Exception $e) {
+            // Silently fail if update checker has issues
+            error_log('Advanced Bundle System: Update checker error - ' . $e->getMessage());
+        }
+    }
 }
 
 /**
@@ -84,7 +98,19 @@ class Advanced_Bundle_System {
      * Constructor
      */
     private function __construct() {
+        // Check if WooCommerce is active
+        if (!abs_is_woocommerce_active()) {
+            add_action('admin_notices', 'abs_woocommerce_missing_notice');
+            return;
+        }
+
+        // Initialize update checker
+        add_action('init', 'abs_init_update_checker', 0);
+
+        // Load plugin files
         $this->includes();
+
+        // Initialize hooks
         $this->init_hooks();
     }
 
@@ -92,12 +118,23 @@ class Advanced_Bundle_System {
      * Include required files
      */
     private function includes() {
-        require_once ABS_PLUGIN_DIR . 'includes/class-abs-product-type.php';
-        require_once ABS_PLUGIN_DIR . 'includes/class-abs-admin.php';
-        require_once ABS_PLUGIN_DIR . 'includes/class-abs-frontend.php';
-        require_once ABS_PLUGIN_DIR . 'includes/class-abs-cart.php';
-        require_once ABS_PLUGIN_DIR . 'includes/class-abs-personalization.php';
-        require_once ABS_PLUGIN_DIR . 'includes/class-abs-order.php';
+        $includes = array(
+            'includes/class-abs-product-type.php',
+            'includes/class-abs-admin.php',
+            'includes/class-abs-frontend.php',
+            'includes/class-abs-cart.php',
+            'includes/class-abs-personalization.php',
+            'includes/class-abs-order.php'
+        );
+
+        foreach ($includes as $file) {
+            $filepath = ABS_PLUGIN_DIR . $file;
+            if (file_exists($filepath)) {
+                require_once $filepath;
+            } else {
+                error_log('Advanced Bundle System: Missing file - ' . $file);
+            }
+        }
     }
 
     /**
@@ -120,6 +157,10 @@ class Advanced_Bundle_System {
      * Enqueue frontend assets
      */
     public function enqueue_frontend_assets() {
+        if (!function_exists('is_product') || !function_exists('is_cart') || !function_exists('is_checkout')) {
+            return;
+        }
+
         if (is_product() || is_cart() || is_checkout()) {
             wp_enqueue_style('abs-frontend', ABS_PLUGIN_URL . 'assets/css/frontend.css', array(), ABS_VERSION);
             wp_enqueue_script('abs-frontend', ABS_PLUGIN_URL . 'assets/js/frontend.js', array('jquery'), ABS_VERSION, true);
@@ -147,19 +188,29 @@ class Advanced_Bundle_System {
 }
 
 /**
- * Initialize the plugin
+ * Initialize the plugin after plugins are loaded
  */
 function abs_init() {
+    // Make sure WooCommerce functions are available
+    if (!abs_is_woocommerce_active()) {
+        return;
+    }
+
     return Advanced_Bundle_System::get_instance();
 }
 
-// Initialize plugin
-add_action('plugins_loaded', 'abs_init');
+// Initialize plugin on plugins_loaded with priority 20 (after WooCommerce which uses 10)
+add_action('plugins_loaded', 'abs_init', 20);
 
 /**
  * Activation hook
  */
 function abs_activate() {
+    if (!abs_is_woocommerce_active()) {
+        deactivate_plugins(plugin_basename(__FILE__));
+        wp_die(__('Advanced Bundle System requires WooCommerce to be installed and active.', 'advanced-bundle-system'));
+    }
+
     // Flush rewrite rules
     flush_rewrite_rules();
 }
@@ -173,3 +224,12 @@ function abs_deactivate() {
     flush_rewrite_rules();
 }
 register_deactivation_hook(__FILE__, 'abs_deactivate');
+
+/**
+ * Declare HPOS compatibility
+ */
+add_action('before_woocommerce_init', function() {
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+    }
+});
