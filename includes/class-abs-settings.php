@@ -12,6 +12,19 @@ class ABS_Settings {
     public function __construct() {
         add_action('admin_menu', array($this, 'add_settings_page'));
         add_action('admin_init', array($this, 'register_settings'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_settings_assets'));
+    }
+
+    /**
+     * Enqueue settings page assets
+     */
+    public function enqueue_settings_assets($hook) {
+        if ($hook !== 'woocommerce_page_abs-settings') {
+            return;
+        }
+
+        wp_enqueue_style('abs-settings', ABS_PLUGIN_URL . 'assets/css/settings.css', array(), ABS_VERSION);
+        wp_enqueue_script('abs-settings', ABS_PLUGIN_URL . 'assets/js/settings.js', array('jquery'), ABS_VERSION, true);
     }
 
     /**
@@ -204,18 +217,81 @@ class ABS_Settings {
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
-            <form action="options.php" method="post">
-                <?php
-                settings_fields('abs_settings_group');
-                do_settings_sections('abs-settings');
-                submit_button(__('Save Settings', 'advanced-bundle-system'));
-                ?>
-            </form>
+            <div class="abs-settings-layout">
+                <div class="abs-settings-form">
+                    <form action="options.php" method="post">
+                        <?php
+                        settings_fields('abs_settings_group');
+                        do_settings_sections('abs-settings');
+                        submit_button(__('Save Settings', 'advanced-bundle-system'));
+                        ?>
+                    </form>
+                </div>
 
-            <div class="abs-settings-info" style="margin-top: 30px; padding: 20px; background: #f0f6fc; border-left: 4px solid #2271b1; border-radius: 4px;">
-                <h3 style="margin-top: 0;"><?php _e('Preview Your Changes', 'advanced-bundle-system'); ?></h3>
-                <p><?php _e('After saving, visit any bundle product page to see your customized text.', 'advanced-bundle-system'); ?></p>
-                <p><strong><?php _e('Tip:', 'advanced-bundle-system'); ?></strong> <?php _e('You can use HTML in most fields for additional styling.', 'advanced-bundle-system'); ?></p>
+                <div class="abs-settings-preview">
+                    <div class="abs-preview-sticky">
+                        <h2><?php _e('Live Preview', 'advanced-bundle-system'); ?></h2>
+                        <p class="description"><?php _e('See your changes in real-time as you type', 'advanced-bundle-system'); ?></p>
+
+                        <!-- Product Page Preview -->
+                        <div class="abs-preview-section">
+                            <h3><?php _e('Product Page', 'advanced-bundle-system'); ?></h3>
+                            <div class="abs-preview-mock">
+                                <div class="abs-mock-bundle">
+                                    <h4 id="preview-bundle-heading"><?php echo esc_html(self::get_setting('bundle_heading', __('This bundle includes:', 'advanced-bundle-system'))); ?></h4>
+
+                                    <div class="abs-mock-bundle-item">
+                                        <div class="abs-mock-item-image"></div>
+                                        <div class="abs-mock-item-details">
+                                            <strong>Bathrobe</strong>
+                                            <p class="abs-mock-price">€45.00</p>
+
+                                            <div class="abs-mock-personalization">
+                                                <label>Enter your initials:</label>
+                                                <input type="text" placeholder="AB" disabled />
+                                                <button type="button" id="preview-button-text" class="abs-mock-button">
+                                                    <?php echo esc_html(self::get_setting('preview_button_text', __('Preview Personalization', 'advanced-bundle-system'))); ?>
+                                                </button>
+                                                <small id="preview-disclaimer"><?php echo esc_html(self::get_setting('personalization_disclaimer', __('This is an embroidered product - image is for visualization purposes', 'advanced-bundle-system'))); ?></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Preview -->
+                        <div class="abs-preview-section">
+                            <h3><?php _e('Price Display', 'advanced-bundle-system'); ?></h3>
+                            <div class="abs-preview-mock">
+                                <div class="abs-mock-pricing">
+                                    <del>€90.00</del> <ins>€72.00</ins>
+                                    <span id="preview-discount-badge" class="abs-mock-discount">
+                                        <?php echo sprintf(self::get_setting('discount_format', __('Save %s%%', 'advanced-bundle-system')), '20'); ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cart/Order Preview -->
+                        <div class="abs-preview-section">
+                            <h3><?php _e('Cart & Orders', 'advanced-bundle-system'); ?></h3>
+                            <div class="abs-preview-mock">
+                                <div class="abs-mock-order">
+                                    <strong>Couple's Bathrobe Bundle</strong>
+                                    <div class="abs-mock-order-items">
+                                        <strong id="preview-bundle-includes"><?php echo esc_html(self::get_setting('cart_bundle_includes', __('Bundle includes:', 'advanced-bundle-system'))); ?></strong>
+                                        <ul>
+                                            <li>Bathrobe</li>
+                                            <li>Towel Set</li>
+                                        </ul>
+                                    </div>
+                                    <small><span id="preview-personalization-label"><?php echo esc_html(self::get_setting('cart_personalization_label', __('Personalization', 'advanced-bundle-system'))); ?></span>: AB</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <?php

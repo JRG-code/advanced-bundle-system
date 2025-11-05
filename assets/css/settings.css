@@ -1,0 +1,246 @@
+/**
+ * Settings Page Styles
+ */
+
+/* Layout */
+.abs-settings-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.abs-settings-form {
+    min-width: 0;
+}
+
+.abs-settings-preview {
+    position: relative;
+}
+
+.abs-preview-sticky {
+    position: sticky;
+    top: 32px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.abs-preview-sticky h2 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.abs-preview-sticky > .description {
+    margin: 0 0 20px 0;
+    color: #646970;
+    font-size: 13px;
+}
+
+/* Preview Sections */
+.abs-preview-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.abs-preview-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.abs-preview-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.abs-preview-mock {
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 15px;
+    font-size: 13px;
+}
+
+/* Mock Bundle */
+.abs-mock-bundle h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.abs-mock-bundle-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.02);
+    border-left: 3px solid #ddd;
+    border-radius: 0 4px 4px 0;
+}
+
+.abs-mock-item-image {
+    width: 50px;
+    height: 50px;
+    background: #ddd;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.abs-mock-item-details {
+    flex: 1;
+}
+
+.abs-mock-item-details strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 13px;
+    color: #555;
+}
+
+.abs-mock-price {
+    margin: 0 0 8px 0;
+    color: #888;
+    font-size: 12px;
+}
+
+.abs-mock-personalization {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.abs-mock-personalization label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.abs-mock-personalization input {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.abs-mock-button {
+    padding: 4px 10px;
+    background: #2196f3;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: default;
+    margin-bottom: 6px;
+}
+
+.abs-mock-personalization small {
+    display: block;
+    color: #666;
+    font-style: italic;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+/* Mock Pricing */
+.abs-mock-pricing {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.abs-mock-pricing del {
+    color: #999;
+    font-size: 14px;
+}
+
+.abs-mock-pricing ins {
+    text-decoration: none;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.abs-mock-discount {
+    padding: 3px 8px;
+    background: #4caf50;
+    color: #fff;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Mock Order */
+.abs-mock-order strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.abs-mock-order-items {
+    margin: 8px 0;
+    padding-left: 15px;
+}
+
+.abs-mock-order-items strong {
+    font-size: 12px;
+    color: #555;
+}
+
+.abs-mock-order-items ul {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0;
+}
+
+.abs-mock-order-items li {
+    margin: 3px 0;
+    padding-left: 15px;
+    position: relative;
+    font-size: 12px;
+    color: #777;
+}
+
+.abs-mock-order-items li:before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #bbb;
+    font-size: 11px;
+}
+
+.abs-mock-order small {
+    display: block;
+    margin-top: 8px;
+    color: #666;
+    font-size: 11px;
+}
+
+/* Responsive */
+@media (max-width: 1280px) {
+    .abs-settings-layout {
+        grid-template-columns: 1fr 350px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .abs-settings-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .abs-preview-sticky {
+        position: relative;
+        top: 0;
+    }
+}
