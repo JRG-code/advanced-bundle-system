@@ -157,11 +157,12 @@ class WC_Product_Bundle extends WC_Product {
         if ($bundle_price_num < $regular_price_num) {
             // Show discount
             $discount_percent = (($regular_price_num - $bundle_price_num) / $regular_price_num) * 100;
+            $discount_format = ABS_Settings::get_setting('discount_format', __('Save %s%%', 'advanced-bundle-system'));
 
             $price_html = '<div class="abs-bundle-pricing">';
             $price_html .= '<span class="abs-original-price"><del>' . wc_price($regular_price_num) . '</del></span> ';
             $price_html .= '<span class="abs-bundle-price"><ins>' . wc_price($bundle_price_num) . '</ins></span>';
-            $price_html .= ' <span class="abs-discount-badge">' . sprintf(__('Save %s%%', 'advanced-bundle-system'), number_format($discount_percent, 0)) . '</span>';
+            $price_html .= ' <span class="abs-discount-badge">' . sprintf($discount_format, number_format($discount_percent, 0)) . '</span>';
             $price_html .= '</div>';
         } else {
             $price_html = '<span class="abs-bundle-price">' . wc_price($bundle_price_num) . '</span>';

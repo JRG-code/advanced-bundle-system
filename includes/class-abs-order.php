@@ -30,8 +30,10 @@ class ABS_Order {
             return;
         }
 
+        $bundle_includes_text = ABS_Settings::get_setting('cart_bundle_includes', __('Bundle includes:', 'advanced-bundle-system'));
+
         if ($plain_text) {
-            echo "\n" . __('Bundle includes:', 'advanced-bundle-system') . "\n";
+            echo "\n" . $bundle_includes_text . "\n";
             foreach ($bundle_products as $product_id) {
                 $product = wc_get_product($product_id);
                 if ($product) {
@@ -40,7 +42,7 @@ class ABS_Order {
             }
         } else {
             echo '<div class="abs-order-bundle-items">';
-            echo '<strong>' . __('Bundle includes:', 'advanced-bundle-system') . '</strong>';
+            echo '<strong>' . esc_html($bundle_includes_text) . '</strong>';
             echo '<ul>';
             foreach ($bundle_products as $product_id) {
                 $product = wc_get_product($product_id);
