@@ -28,7 +28,7 @@ define('ABS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ABS_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 // Include the update checker
-require ABS_PLUGIN_DIR . 'lib/plugin-update-checker/plugin-update-checker.php';
+require ABS_PLUGIN_DIR . 'plugin-update-checker/plugin-update-checker.php';
 
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
