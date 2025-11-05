@@ -18,15 +18,16 @@ class ABS_Cart {
     }
 
     /**
-     * Add personalization data to cart item
+     * Add personalization and attributes data to cart item
      */
     public function add_cart_item_data($cart_item_data, $product_id, $variation_id) {
+        // Handle personalization data
         if (isset($_POST['abs_personalization'])) {
             $personalization_data = array();
 
-            foreach ($_POST['abs_personalization'] as $pid => $data) {
+            foreach ($_POST['abs_personalization'] as $unique_id => $data) {
                 if (!empty($data['text'])) {
-                    $personalization_data[intval($pid)] = array(
+                    $personalization_data[$unique_id] = array(
                         'text' => sanitize_text_field($data['text'])
                     );
                 }
@@ -34,6 +35,25 @@ class ABS_Cart {
 
             if (!empty($personalization_data)) {
                 $cart_item_data['abs_personalization'] = $personalization_data;
+            }
+        }
+
+        // Handle attributes data
+        if (isset($_POST['abs_attributes'])) {
+            $attributes_data = array();
+
+            foreach ($_POST['abs_attributes'] as $unique_id => $attributes) {
+                if (is_array($attributes) && !empty($attributes)) {
+                    $sanitized_attributes = array();
+                    foreach ($attributes as $attr_name => $attr_value) {
+                        $sanitized_attributes[sanitize_text_field($attr_name)] = sanitize_text_field($attr_value);
+                    }
+                    $attributes_data[$unique_id] = $sanitized_attributes;
+                }
+            }
+
+            if (!empty($attributes_data)) {
+                $cart_item_data['abs_attributes'] = $attributes_data;
             }
         }
 
@@ -53,16 +73,27 @@ class ABS_Cart {
      * Display cart item data
      */
     public function display_cart_item_data($item_data, $cart_item) {
-        if (isset($cart_item['abs_personalization'])) {
-            foreach ($cart_item['abs_personalization'] as $product_id => $personalization) {
-                $product = wc_get_product($product_id);
-                if ($product) {
+        // Display attributes
+        if (isset($cart_item['abs_attributes'])) {
+            foreach ($cart_item['abs_attributes'] as $unique_id => $attributes) {
+                foreach ($attributes as $attr_name => $attr_value) {
                     $item_data[] = array(
-                        'key' => sprintf(__('Personalization for %s', 'advanced-bundle-system'), $product->get_name()),
-                        'value' => esc_html($personalization['text']),
+                        'key' => ucfirst(str_replace('_', ' ', $attr_name)),
+                        'value' => esc_html($attr_value),
                         'display' => ''
                     );
                 }
+            }
+        }
+
+        // Display personalization
+        if (isset($cart_item['abs_personalization'])) {
+            foreach ($cart_item['abs_personalization'] as $unique_id => $personalization) {
+                $item_data[] = array(
+                    'key' => __('Personalization', 'advanced-bundle-system'),
+                    'value' => esc_html($personalization['text']),
+                    'display' => ''
+                );
             }
         }
 
@@ -137,16 +168,27 @@ class ABS_Cart {
      * Add order item meta
      */
     public function add_order_item_meta($item, $cart_item_key, $values, $order) {
-        if (isset($values['abs_personalization'])) {
-            foreach ($values['abs_personalization'] as $product_id => $personalization) {
-                $product = wc_get_product($product_id);
-                if ($product) {
+        // Save attributes
+        if (isset($values['abs_attributes'])) {
+            foreach ($values['abs_attributes'] as $unique_id => $attributes) {
+                foreach ($attributes as $attr_name => $attr_value) {
                     $item->add_meta_data(
-                        sprintf(__('Personalization for %s', 'advanced-bundle-system'), $product->get_name()),
-                        $personalization['text'],
+                        ucfirst(str_replace('_', ' ', $attr_name)),
+                        $attr_value,
                         true
                     );
                 }
+            }
+        }
+
+        // Save personalization
+        if (isset($values['abs_personalization'])) {
+            foreach ($values['abs_personalization'] as $unique_id => $personalization) {
+                $item->add_meta_data(
+                    __('Personalization', 'advanced-bundle-system'),
+                    $personalization['text'],
+                    true
+                );
             }
         }
 

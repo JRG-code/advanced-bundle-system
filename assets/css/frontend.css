@@ -97,6 +97,40 @@
     font-weight: 600;
 }
 
+/* Attribute Fields */
+.abs-attribute-fields {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.abs-attribute-field {
+    margin-bottom: 15px;
+}
+
+.abs-attribute-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.abs-attribute-select {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.abs-attribute-select:focus {
+    outline: none;
+    border-color: #2196f3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
 /* Personalization Fields */
 .abs-personalization-fields {
     margin-top: 15px;

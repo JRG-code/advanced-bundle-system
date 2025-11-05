@@ -23,6 +23,89 @@
     font-weight: 600;
 }
 
+#bundle_product_data p {
+    margin: 10px 0;
+    color: #666;
+}
+
+/* Bundle Items Table */
+#abs_bundle_items_table {
+    margin-top: 10px;
+    border: 1px solid #ddd;
+}
+
+#abs_bundle_items_table thead th {
+    background: #f9f9f9;
+    padding: 10px;
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+}
+
+#abs_bundle_items_table tbody td {
+    padding: 10px;
+    vertical-align: middle;
+}
+
+#abs_bundle_items_table tbody tr {
+    border-bottom: 1px solid #eee;
+}
+
+#abs_bundle_items_table tbody tr:last-child {
+    border-bottom: none;
+}
+
+#abs_bundle_items_table .abs-product-search {
+    min-width: 250px;
+}
+
+#abs_bundle_items_table input[type="number"] {
+    padding: 5px;
+}
+
+#abs_bundle_items_table input[type="text"] {
+    padding: 5px;
+}
+
+#abs_bundle_items_table input[type="checkbox"] {
+    margin: 0;
+    vertical-align: middle;
+}
+
+#abs_bundle_items_table .abs-remove-item {
+    padding: 5px 10px;
+    background: #dc3232;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+#abs_bundle_items_table .abs-remove-item:hover {
+    background: #a00;
+}
+
+#abs_bundle_items_table .abs-remove-item .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 1;
+}
+
+#abs_add_bundle_item {
+    margin-top: 10px;
+}
+
+/* Empty Table State */
+#abs_bundle_items_tbody:empty::after {
+    content: attr(data-empty-text);
+    display: block;
+    padding: 20px;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
 /* Product Search Select */
 #abs_bundle_products {
     width: 100% !important;
