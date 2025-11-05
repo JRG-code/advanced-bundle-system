@@ -14,6 +14,9 @@ class ABS_Product_Type {
         add_action('woocommerce_product_options_general_product_data', array($this, 'add_bundle_fields_to_general_tab'));
         add_action('woocommerce_product_options_related', array($this, 'add_base_products_to_linked_products'));
         add_action('woocommerce_process_product_meta', array($this, 'save_product_data'));
+
+        // Prevent bundle products from managing their own stock
+        add_filter('woocommerce_product_type_options', array($this, 'hide_stock_management_for_bundles'));
     }
 
     /**
@@ -289,6 +292,22 @@ class ABS_Product_Type {
             </p>
         </div>
         <?php
+    }
+
+    /**
+     * Hide stock management options for bundle products
+     */
+    public function hide_stock_management_for_bundles($options) {
+        // Add wrapper class to hide stock management for bundles
+        $options['virtual']['wrapper_class'] = isset($options['virtual']['wrapper_class'])
+            ? $options['virtual']['wrapper_class'] . ' hide_if_bundle'
+            : 'hide_if_bundle';
+
+        $options['downloadable']['wrapper_class'] = isset($options['downloadable']['wrapper_class'])
+            ? $options['downloadable']['wrapper_class'] . ' hide_if_bundle'
+            : 'hide_if_bundle';
+
+        return $options;
     }
 
     /**

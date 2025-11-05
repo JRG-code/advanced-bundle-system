@@ -38,22 +38,51 @@ class ABS_Cart {
             }
         }
 
-        // Handle attributes data
+        // Handle attributes data and find matching variations
         if (isset($_POST['abs_attributes'])) {
             $attributes_data = array();
+            $variation_ids = array();
 
-            foreach ($_POST['abs_attributes'] as $unique_id => $attributes) {
-                if (is_array($attributes) && !empty($attributes)) {
-                    $sanitized_attributes = array();
-                    foreach ($attributes as $attr_name => $attr_value) {
-                        $sanitized_attributes[sanitize_text_field($attr_name)] = sanitize_text_field($attr_value);
+            // Get bundle items to match unique_id with product_id
+            $bundle_items = get_post_meta($product_id, '_bundle_items', true);
+            if (is_array($bundle_items)) {
+                $item_counter = 0;
+                foreach ($bundle_items as $item) {
+                    $bundled_product_id = $item['product_id'];
+                    $item_quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+
+                    for ($q = 0; $q < $item_quantity; $q++) {
+                        $unique_id = $item_counter++;
+
+                        if (isset($_POST['abs_attributes'][$unique_id]) && is_array($_POST['abs_attributes'][$unique_id])) {
+                            $attributes = $_POST['abs_attributes'][$unique_id];
+                            $sanitized_attributes = array();
+
+                            foreach ($attributes as $attr_name => $attr_value) {
+                                $sanitized_attributes[sanitize_text_field($attr_name)] = sanitize_text_field($attr_value);
+                            }
+
+                            $attributes_data[$unique_id] = $sanitized_attributes;
+
+                            // Find matching variation for variable products
+                            $bundled_product = wc_get_product($bundled_product_id);
+                            if ($bundled_product && $bundled_product->is_type('variable')) {
+                                $variation_id = $this->find_matching_variation($bundled_product, $sanitized_attributes);
+                                if ($variation_id) {
+                                    $variation_ids[$unique_id] = $variation_id;
+                                }
+                            }
+                        }
                     }
-                    $attributes_data[$unique_id] = $sanitized_attributes;
                 }
             }
 
             if (!empty($attributes_data)) {
                 $cart_item_data['abs_attributes'] = $attributes_data;
+            }
+
+            if (!empty($variation_ids)) {
+                $cart_item_data['abs_variation_ids'] = $variation_ids;
             }
         }
 
@@ -195,6 +224,36 @@ class ABS_Cart {
         if (isset($values['abs_bundle_products'])) {
             $item->add_meta_data('_abs_bundle_products', $values['abs_bundle_products'], false);
         }
+
+        // Save variation IDs for stock management
+        if (isset($values['abs_variation_ids'])) {
+            $item->add_meta_data('_abs_variation_ids', $values['abs_variation_ids'], false);
+        }
+    }
+
+    /**
+     * Find matching variation based on selected attributes
+     */
+    private function find_matching_variation($product, $selected_attributes) {
+        if (!$product->is_type('variable')) {
+            return false;
+        }
+
+        $data_store = WC_Data_Store::load('product');
+
+        // Format attributes for matching (add 'attribute_' prefix if not present)
+        $formatted_attributes = array();
+        foreach ($selected_attributes as $key => $value) {
+            // Handle both pa_ taxonomy attributes and custom attributes
+            if (strpos($key, 'attribute_') !== 0) {
+                $formatted_key = 'attribute_' . $key;
+            } else {
+                $formatted_key = $key;
+            }
+            $formatted_attributes[$formatted_key] = $value;
+        }
+
+        return $data_store->find_matching_product_variation($product, $formatted_attributes);
     }
 }
 

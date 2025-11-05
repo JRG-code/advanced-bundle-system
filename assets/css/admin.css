@@ -151,6 +151,35 @@ body.post-type-product .show_if_bundle {
     display: block;
 }
 
+/* Hide stock management for bundle products */
+.hide_if_bundle {
+    display: block;
+}
+
+body.post-type-product .product_data_tabs .inventory_options.inventory_tab,
+body.post-type-product #inventory_product_data,
+body.post-type-product .hide_if_bundle,
+body.post-type-product ._manage_stock_field,
+body.post-type-product ._stock_status_field,
+body.post-type-product ._stock_field,
+body.post-type-product ._backorders_field,
+body.post-type-product ._low_stock_amount_field,
+body.post-type-product ._sold_individually_field {
+    display: block !important;
+}
+
+.product-type-bundle .inventory_options.inventory_tab,
+.product-type-bundle #inventory_product_data,
+.product-type-bundle .hide_if_bundle,
+.product-type-bundle ._manage_stock_field,
+.product-type-bundle ._stock_status_field,
+.product-type-bundle ._stock_field,
+.product-type-bundle ._backorders_field,
+.product-type-bundle ._low_stock_amount_field,
+.product-type-bundle ._sold_individually_field {
+    display: none !important;
+}
+
 /* Personalization Checkbox */
 #bundle_product_data label {
     display: flex;
