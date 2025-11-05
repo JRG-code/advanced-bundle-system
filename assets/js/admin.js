@@ -61,20 +61,22 @@
                 $('.show_if_simple').hide();
                 $('.show_if_variable').hide();
 
-                // Hide inventory tab and stock management fields
-                $('.inventory_options.inventory_tab').hide();
-                $('#inventory_product_data').hide();
-                $('._manage_stock_field').hide();
-                $('._stock_status_field').hide();
-                $('._stock_field').hide();
-                $('._backorders_field').hide();
-                $('._low_stock_amount_field').hide();
-                $('._sold_individually_field').hide();
-                $('._sku_field').hide();
-                $('._gtin_field').hide();
-                $('._upc_field').hide();
-                $('._ean_field').hide();
-                $('._isbn_field').hide();
+                // Hide only stock quantity management fields (not SKU, GTIN, etc.)
+                // These will be hidden in General tab but visible in Inventory tab via CSS
+                $('#general_product_data ._manage_stock_field').hide();
+                $('#general_product_data ._stock_field').hide();
+                $('#general_product_data ._backorders_field').hide();
+                $('#general_product_data ._low_stock_amount_field').hide();
+                $('#general_product_data ._sku_field').hide();
+                $('#general_product_data ._gtin_field').hide();
+                $('#general_product_data ._upc_field').hide();
+                $('#general_product_data ._ean_field').hide();
+                $('#general_product_data ._isbn_field').hide();
+                $('#general_product_data ._stock_status_field').hide();
+                $('#general_product_data ._sold_individually_field').hide();
+
+                // Keep Inventory tab visible
+                $('.inventory_options.inventory_tab').show();
 
                 // Show bundle tab
                 $('.bundle_options').addClass('active');
@@ -87,7 +89,7 @@
 
                 // Restore inventory fields for non-bundle products
                 $('.inventory_options.inventory_tab').show();
-                $('._sku_field').show();
+                $('#general_product_data ._sku_field').show();
             }
         },
 
