@@ -125,10 +125,12 @@ class Advanced_Bundle_System {
      */
     private function includes() {
         $includes = array(
+            'includes/class-wc-product-bundle.php',
             'includes/class-abs-product-type.php',
             'includes/class-abs-admin.php',
             'includes/class-abs-frontend.php',
             'includes/class-abs-cart.php',
+            'includes/class-abs-stock.php',
             'includes/class-abs-personalization.php',
             'includes/class-abs-order.php'
         );
