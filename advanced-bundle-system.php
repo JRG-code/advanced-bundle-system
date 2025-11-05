@@ -27,6 +27,23 @@ define('ABS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ABS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ABS_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
+// Include the update checker
+require ABS_PLUGIN_DIR . 'lib/plugin-update-checker/plugin-update-checker.php';
+
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+    'https://github.com/JRG-code/advanced-bundle-system',
+    __FILE__,
+    'advanced-bundle-system'
+);
+
+// Set the branch that contains the stable release
+$myUpdateChecker->setBranch('main');
+
+// Optional: If your repository is private, specify the access token
+// $myUpdateChecker->setAuthentication('your-token-here');
+
 /**
  * Check if WooCommerce is active
  */
