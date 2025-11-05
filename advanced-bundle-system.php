@@ -50,6 +50,12 @@ function abs_woocommerce_missing_notice() {
  * Initialize the plugin update checker
  */
 function abs_init_update_checker() {
+    // Load Parsedown library first (required by plugin-update-checker for parsing release notes)
+    $parsedown_file = ABS_PLUGIN_DIR . 'plugin-update-checker/Parsedown.php';
+    if (file_exists($parsedown_file) && !class_exists('Parsedown')) {
+        require_once $parsedown_file;
+    }
+
     // Only load update checker if the library exists
     $update_checker_file = ABS_PLUGIN_DIR . 'plugin-update-checker/plugin-update-checker.php';
 
