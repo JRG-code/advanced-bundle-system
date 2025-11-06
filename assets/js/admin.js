@@ -116,6 +116,8 @@
         },
 
         initProductSearch: function($select) {
+            var self = this;
+
             $select.selectWoo({
                 ajax: {
                     url: ajaxurl,
@@ -139,6 +141,43 @@
                 minimumInputLength: 2,
                 placeholder: $select.data('placeholder'),
                 allowClear: false
+            });
+
+            // Fetch and display attributes when product is selected
+            $select.on('change', function() {
+                var productId = $(this).val();
+                var $row = $(this).closest('tr');
+                var $attributesCell = $row.find('.abs-attributes-display');
+
+                if (productId) {
+                    self.fetchProductAttributes(productId, $attributesCell);
+                } else {
+                    $attributesCell.html('<span style="color: #999; font-size: 11px; font-style: italic;">No product selected</span>');
+                }
+            });
+        },
+
+        fetchProductAttributes: function(productId, $targetCell) {
+            $targetCell.html('<span style="color: #999; font-size: 11px;">Loading...</span>');
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'abs_get_product_attributes',
+                    product_id: productId,
+                    nonce: $('#abs_attributes_nonce').val() || ''
+                },
+                success: function(response) {
+                    if (response.success && response.data.html) {
+                        $targetCell.html(response.data.html);
+                    } else {
+                        $targetCell.html('<span style="color: #999; font-size: 11px; font-style: italic;">No variations</span>');
+                    }
+                },
+                error: function() {
+                    $targetCell.html('<span style="color: #d63638; font-size: 11px;">Error loading attributes</span>');
+                }
             });
         },
 

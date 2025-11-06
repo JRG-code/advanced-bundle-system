@@ -75,12 +75,13 @@ class ABS_Product_Type {
                 <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px);">
                     <thead>
                         <tr>
-                            <th style="width: 30%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 8%;"><?php _e('Quantity', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 25%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 18%;"><?php _e('Available Attributes', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 7%;"><?php _e('Quantity', 'advanced-bundle-system'); ?></th>
                             <th style="width: 10%;"><?php _e('Ask Attributes', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 12%;"><?php _e('Personalization', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 20%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 10%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 10%;"><?php _e('Personalization', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 18%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 7%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
@@ -145,6 +146,34 @@ class ABS_Product_Type {
                         <option value=""><?php _e('Select a product', 'advanced-bundle-system'); ?></option>
                     <?php endif; ?>
                 </select>
+            </td>
+            <td class="abs-attributes-display" style="padding: 5px;">
+                <?php if ($product && $product->is_type('variable')): ?>
+                    <?php
+                    $attributes = $product->get_attributes();
+                    if (!empty($attributes)):
+                        foreach ($attributes as $attribute_name => $attribute):
+                            if ($attribute->is_taxonomy()):
+                                $terms = wc_get_product_terms($product_id, $attribute_name, array('fields' => 'names'));
+                                $attribute_label = wc_attribute_label($attribute_name);
+                            else:
+                                $terms = $attribute->get_options();
+                                $attribute_label = $attribute->get_name();
+                            endif;
+                            if (!empty($terms)):
+                                ?>
+                                <div class="abs-attribute-info" style="margin-bottom: 4px;">
+                                    <strong style="color: #2271b1; font-size: 11px;"><?php echo esc_html($attribute_label); ?>:</strong>
+                                    <span style="color: #666; font-size: 11px;"><?php echo esc_html(is_array($terms) ? implode(', ', $terms) : $terms); ?></span>
+                                </div>
+                                <?php
+                            endif;
+                        endforeach;
+                    endif;
+                    ?>
+                <?php else: ?>
+                    <span style="color: #999; font-size: 11px; font-style: italic;"><?php _e('No variations', 'advanced-bundle-system'); ?></span>
+                <?php endif; ?>
             </td>
             <td style="text-align: center;">
                 <input type="number"
