@@ -276,11 +276,6 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
     font-style: italic;
 }
 
-/* Bundle Product Icons */
-.product-type-bundle .dashicons-before:before {
-    content: "\f316"; /* Package icon */
-}
-
 /* Ensure the categories column doesn't affect stock column */
 .wp-list-table .column-product_cat,
 .wp-list-table .column-categories {
