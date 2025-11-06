@@ -99,6 +99,12 @@ class ABS_Frontend {
             return;
         }
 
+        // Get default attributes for this product
+        $default_attributes = array();
+        if ($product->is_type('variable')) {
+            $default_attributes = $product->get_default_attributes();
+        }
+
         echo '<div class="abs-attribute-fields">';
 
         foreach ($attributes as $attribute_name => $attribute) {
@@ -116,6 +122,10 @@ class ABS_Frontend {
                 continue;
             }
 
+            // Get default value for this attribute (if set)
+            $sanitized_attribute_name = sanitize_title($attribute_name);
+            $default_value = isset($default_attributes[$sanitized_attribute_name]) ? $default_attributes[$sanitized_attribute_name] : '';
+
             echo '<div class="abs-attribute-field">';
             echo '<label for="abs_attribute_' . esc_attr($attribute_name) . '_' . esc_attr($unique_id) . '">';
             echo esc_html($attribute_label) . ':';
@@ -123,15 +133,21 @@ class ABS_Frontend {
             echo '<select name="abs_attributes[' . esc_attr($unique_id) . '][' . esc_attr($attribute_name) . ']" ';
             echo 'id="abs_attribute_' . esc_attr($attribute_name) . '_' . esc_attr($unique_id) . '" ';
             echo 'class="abs-attribute-select" required>';
-            echo '<option value="">' . sprintf(__('Choose %s', 'advanced-bundle-system'), esc_html($attribute_label)) . '</option>';
+
+            // Only show placeholder if no default is set
+            if (empty($default_value)) {
+                echo '<option value="">' . sprintf(__('Choose %s', 'advanced-bundle-system'), esc_html($attribute_label)) . '</option>';
+            }
 
             if ($attribute->is_taxonomy() && is_array($terms)) {
                 foreach ($terms as $term) {
-                    echo '<option value="' . esc_attr($term->slug) . '">' . esc_html($term->name) . '</option>';
+                    $selected = ($default_value === $term->slug) ? ' selected' : '';
+                    echo '<option value="' . esc_attr($term->slug) . '"' . $selected . '>' . esc_html($term->name) . '</option>';
                 }
             } else {
                 foreach ($terms as $term) {
-                    echo '<option value="' . esc_attr($term) . '">' . esc_html($term) . '</option>';
+                    $selected = ($default_value === $term) ? ' selected' : '';
+                    echo '<option value="' . esc_attr($term) . '"' . $selected . '>' . esc_html($term) . '</option>';
                 }
             }
 

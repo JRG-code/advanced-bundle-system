@@ -13,6 +13,7 @@ class ABS_Admin {
         add_action('admin_footer', array($this, 'add_product_search_script'));
         add_action('wp_ajax_abs_search_products', array($this, 'ajax_search_products'));
         add_action('wp_ajax_abs_calculate_bundle_pricing', array($this, 'ajax_calculate_bundle_pricing'));
+        add_action('wp_ajax_abs_get_product_attributes', array($this, 'ajax_get_product_attributes'));
 
         // Override WooCommerce's is_in_stock column rendering
         // Use admin_init to remove WooCommerce's handler and add ours
@@ -38,6 +39,7 @@ class ABS_Admin {
         ?>
         <input type="hidden" id="abs_search_nonce" value="<?php echo wp_create_nonce('abs-search-products'); ?>" />
         <input type="hidden" id="abs_pricing_nonce" value="<?php echo wp_create_nonce('abs-calculate-pricing'); ?>" />
+        <input type="hidden" id="abs_attributes_nonce" value="<?php echo wp_create_nonce('abs-get-attributes'); ?>" />
         <input type="hidden" id="abs_current_product_id" value="<?php echo esc_attr($post->ID); ?>" />
         <?php
     }
@@ -125,6 +127,56 @@ class ABS_Admin {
                 'items' => $bundle_items
             )
         ));
+    }
+
+    /**
+     * AJAX get product attributes
+     */
+    public function ajax_get_product_attributes() {
+        check_ajax_referer('abs-get-attributes', 'nonce');
+
+        $product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
+
+        if (!$product_id) {
+            wp_send_json_error(array('message' => __('Invalid product ID', 'advanced-bundle-system')));
+        }
+
+        $product = wc_get_product($product_id);
+
+        if (!$product) {
+            wp_send_json_error(array('message' => __('Product not found', 'advanced-bundle-system')));
+        }
+
+        $html = '';
+
+        if ($product->is_type('variable')) {
+            $attributes = $product->get_attributes();
+
+            if (!empty($attributes)) {
+                foreach ($attributes as $attribute_name => $attribute) {
+                    if ($attribute->is_taxonomy()) {
+                        $terms = wc_get_product_terms($product_id, $attribute_name, array('fields' => 'names'));
+                        $attribute_label = wc_attribute_label($attribute_name);
+                    } else {
+                        $terms = $attribute->get_options();
+                        $attribute_label = $attribute->get_name();
+                    }
+
+                    if (!empty($terms)) {
+                        $html .= '<div class="abs-attribute-info" style="margin-bottom: 4px;">';
+                        $html .= '<strong style="color: #2271b1; font-size: 11px;">' . esc_html($attribute_label) . ':</strong> ';
+                        $html .= '<span style="color: #666; font-size: 11px;">' . esc_html(is_array($terms) ? implode(', ', $terms) : $terms) . '</span>';
+                        $html .= '</div>';
+                    }
+                }
+            }
+        }
+
+        if (empty($html)) {
+            $html = '<span style="color: #999; font-size: 11px; font-style: italic;">' . __('No variations', 'advanced-bundle-system') . '</span>';
+        }
+
+        wp_send_json_success(array('html' => $html));
     }
 
     /**
