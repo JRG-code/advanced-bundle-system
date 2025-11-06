@@ -15,7 +15,8 @@ class ABS_Admin {
         add_action('wp_ajax_abs_calculate_bundle_pricing', array($this, 'ajax_calculate_bundle_pricing'));
 
         // Replace WooCommerce's default stock column with our custom one
-        add_filter('manage_edit-product_columns', array($this, 'add_inventory_column'));
+        // Use priority 999 to ensure we run after WooCommerce
+        add_filter('manage_edit-product_columns', array($this, 'add_inventory_column'), 999);
         add_action('manage_product_posts_custom_column', array($this, 'display_inventory_column'), 10, 2);
         add_filter('manage_edit-product_sortable_columns', array($this, 'make_inventory_column_sortable'));
     }
@@ -135,6 +136,18 @@ class ABS_Admin {
             }
         }
 
+        // Extra safety: ensure is_in_stock is completely removed
+        if (isset($new_columns['is_in_stock'])) {
+            unset($new_columns['is_in_stock']);
+        }
+
+        // DEBUG: Output final columns to console
+        add_action('admin_footer', function() use ($columns, $new_columns) {
+            echo '<script>console.log("ORIGINAL Columns:", ' . json_encode($columns) . ');</script>';
+            echo '<script>console.log("FINAL Columns After Replacement:", ' . json_encode($new_columns) . ');</script>';
+            echo '<script>console.log("Column Keys:", ' . json_encode(array_keys($new_columns)) . ');</script>';
+        });
+
         return $new_columns;
     }
 
@@ -142,6 +155,12 @@ class ABS_Admin {
      * Display inventory column content
      */
     public function display_inventory_column($column, $post_id) {
+        // Handle both our custom column and prevent WooCommerce's is_in_stock from rendering
+        if ($column === 'is_in_stock') {
+            // Don't render anything for is_in_stock - we replaced it with abs_inventory
+            return;
+        }
+
         if ($column !== 'abs_inventory') {
             return;
         }
