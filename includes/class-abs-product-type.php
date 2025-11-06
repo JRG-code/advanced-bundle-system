@@ -14,6 +14,7 @@ class ABS_Product_Type {
         add_filter('woocommerce_product_class', array($this, 'register_bundle_product_class'), 10, 2);
         add_action('woocommerce_product_options_general_product_data', array($this, 'add_bundle_fields_to_general_tab'));
         add_action('woocommerce_product_options_related', array($this, 'add_base_products_to_linked_products'));
+        add_action('woocommerce_product_options_attributes', array($this, 'show_bundle_products_attributes'));
         add_action('woocommerce_process_product_meta', array($this, 'save_product_data'));
 
         // Prevent bundle products from managing their own stock
@@ -75,13 +76,12 @@ class ABS_Product_Type {
                 <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px);">
                     <thead>
                         <tr>
-                            <th style="width: 25%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 18%;"><?php _e('Available Attributes', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 7%;"><?php _e('Quantity', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 30%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 8%;"><?php _e('Quantity', 'advanced-bundle-system'); ?></th>
                             <th style="width: 10%;"><?php _e('Ask Attributes', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 10%;"><?php _e('Personalization', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 18%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 7%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 12%;"><?php _e('Personalization', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 20%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 10%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
@@ -147,34 +147,6 @@ class ABS_Product_Type {
                     <?php endif; ?>
                 </select>
             </td>
-            <td class="abs-attributes-display" style="padding: 5px;">
-                <?php if ($product && $product->is_type('variable')): ?>
-                    <?php
-                    $attributes = $product->get_attributes();
-                    if (!empty($attributes)):
-                        foreach ($attributes as $attribute_name => $attribute):
-                            if ($attribute->is_taxonomy()):
-                                $terms = wc_get_product_terms($product_id, $attribute_name, array('fields' => 'names'));
-                                $attribute_label = wc_attribute_label($attribute_name);
-                            else:
-                                $terms = $attribute->get_options();
-                                $attribute_label = $attribute->get_name();
-                            endif;
-                            if (!empty($terms)):
-                                ?>
-                                <div class="abs-attribute-info" style="margin-bottom: 4px;">
-                                    <strong style="color: #2271b1; font-size: 11px;"><?php echo esc_html($attribute_label); ?>:</strong>
-                                    <span style="color: #666; font-size: 11px;"><?php echo esc_html(is_array($terms) ? implode(', ', $terms) : $terms); ?></span>
-                                </div>
-                                <?php
-                            endif;
-                        endforeach;
-                    endif;
-                    ?>
-                <?php else: ?>
-                    <span style="color: #999; font-size: 11px; font-style: italic;"><?php _e('No variations', 'advanced-bundle-system'); ?></span>
-                <?php endif; ?>
-            </td>
             <td style="text-align: center;">
                 <input type="number"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][quantity]"
@@ -223,6 +195,81 @@ class ABS_Product_Type {
                 </button>
             </td>
         </tr>
+        <?php
+    }
+
+    /**
+     * Show bundle products' attributes in Attributes tab
+     */
+    public function show_bundle_products_attributes() {
+        global $post;
+
+        // Only show for bundle products
+        $product_type = get_post_meta($post->ID, '_product_type', true);
+        if ($product_type !== 'bundle') {
+            return;
+        }
+
+        $bundle_items = get_post_meta($post->ID, '_bundle_items', true);
+        if (empty($bundle_items) || !is_array($bundle_items)) {
+            ?>
+            <div class="options_group show_if_bundle" style="padding: 12px;">
+                <p style="color: #666; font-style: italic;">
+                    <?php _e('No products added to bundle yet. Add products in the General tab to see their attributes here.', 'advanced-bundle-system'); ?>
+                </p>
+            </div>
+            <?php
+            return;
+        }
+
+        ?>
+        <div class="options_group show_if_bundle" style="padding: 12px;">
+            <h4 style="margin: 0 0 15px 0;"><?php _e('Bundle Products Attributes', 'advanced-bundle-system'); ?></h4>
+            <p style="color: #666; margin-bottom: 15px;">
+                <?php _e('These are the attributes available in the products included in this bundle:', 'advanced-bundle-system'); ?>
+            </p>
+
+            <?php
+            foreach ($bundle_items as $index => $item) {
+                $product = wc_get_product($item['product_id']);
+                if (!$product) {
+                    continue;
+                }
+
+                echo '<div style="margin-bottom: 20px; padding: 12px; background: #f9f9f9; border-left: 3px solid #2271b1; border-radius: 3px;">';
+                echo '<h5 style="margin: 0 0 10px 0; color: #2271b1;">' . esc_html($product->get_name()) . ' (#' . esc_html($item['product_id']) . ')</h5>';
+
+                if ($product->is_type('variable')) {
+                    $attributes = $product->get_attributes();
+
+                    if (!empty($attributes)) {
+                        foreach ($attributes as $attribute_name => $attribute) {
+                            if ($attribute->is_taxonomy()) {
+                                $terms = wc_get_product_terms($item['product_id'], $attribute_name, array('fields' => 'names'));
+                                $attribute_label = wc_attribute_label($attribute_name);
+                            } else {
+                                $terms = $attribute->get_options();
+                                $attribute_label = $attribute->get_name();
+                            }
+
+                            if (!empty($terms)) {
+                                echo '<div style="margin-bottom: 8px;">';
+                                echo '<strong style="color: #555;">' . esc_html($attribute_label) . ':</strong> ';
+                                echo '<span style="color: #666;">' . esc_html(is_array($terms) ? implode(', ', $terms) : $terms) . '</span>';
+                                echo '</div>';
+                            }
+                        }
+                    } else {
+                        echo '<p style="color: #999; font-style: italic; margin: 0;">' . __('No attributes configured for this product.', 'advanced-bundle-system') . '</p>';
+                    }
+                } else {
+                    echo '<p style="color: #999; font-style: italic; margin: 0;">' . __('This is a simple product (no variations).', 'advanced-bundle-system') . '</p>';
+                }
+
+                echo '</div>';
+            }
+            ?>
+        </div>
         <?php
     }
 
