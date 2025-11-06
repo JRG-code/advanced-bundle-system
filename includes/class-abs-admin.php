@@ -14,9 +14,17 @@ class ABS_Admin {
         add_action('wp_ajax_abs_search_products', array($this, 'ajax_search_products'));
         add_action('wp_ajax_abs_calculate_bundle_pricing', array($this, 'ajax_calculate_bundle_pricing'));
 
-        // SIMPLER APPROACH: Just modify WooCommerce's existing is_in_stock column content
-        // Don't try to replace or remove columns - just override the content output
-        add_action('manage_product_posts_custom_column', array($this, 'display_inventory_column'), 11, 2);
+        // Override WooCommerce's is_in_stock column rendering
+        // Use admin_init to remove WooCommerce's handler and add ours
+        add_action('admin_init', array($this, 'setup_stock_column_override'));
+    }
+
+    /**
+     * Setup our stock column handler
+     */
+    public function setup_stock_column_override() {
+        // Add our handler with priority 10 (same as WooCommerce)
+        add_action('manage_product_posts_custom_column', array($this, 'display_inventory_column'), 10, 2);
     }
 
     /**
@@ -128,18 +136,16 @@ class ABS_Admin {
             return;
         }
 
-        // Clear any output buffer to prevent WooCommerce from rendering its content
-        if (ob_get_level()) {
-            ob_clean();
-        }
-
         $product = wc_get_product($post_id);
         if (!$product) {
-            echo '<span style="color: #999;">—</span>';
+            echo '<div class="abs-stock-content"><span style="color: #999;">—</span></div>';
             return;
         }
 
         $product_type = $product->get_type();
+
+        // Start our custom content wrapper
+        echo '<div class="abs-stock-content">';
 
         // For bundle products
         if ($product_type === 'bundle') {
@@ -147,6 +153,7 @@ class ABS_Admin {
 
             if (empty($bundle_items) || !is_array($bundle_items)) {
                 echo '<span style="color: #d63638;">⚠ No items</span>';
+                echo '</div>'; // Close wrapper
                 return;
             }
 
@@ -234,6 +241,9 @@ class ABS_Admin {
 
             echo '</div>';
         }
+
+        // Close the abs-stock-content wrapper
+        echo '</div>';
     }
 }
 
