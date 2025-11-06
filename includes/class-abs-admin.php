@@ -126,12 +126,28 @@ class ABS_Admin {
     public function add_inventory_column($columns) {
         // Insert inventory column after the price column
         $new_columns = array();
+        $inserted = false;
+
         foreach ($columns as $key => $value) {
             $new_columns[$key] = $value;
             if ($key === 'price') {
-                $new_columns['abs_inventory'] = __('Inventory', 'advanced-bundle-system');
+                $new_columns['abs_inventory'] = __('Stock', 'advanced-bundle-system');
+                $inserted = true;
             }
         }
+
+        // If price column wasn't found, add it before product_cat
+        if (!$inserted) {
+            $final_columns = array();
+            foreach ($new_columns as $key => $value) {
+                if ($key === 'product_cat') {
+                    $final_columns['abs_inventory'] = __('Stock', 'advanced-bundle-system');
+                }
+                $final_columns[$key] = $value;
+            }
+            return $final_columns;
+        }
+
         return $new_columns;
     }
 
