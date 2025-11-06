@@ -376,6 +376,21 @@ body.post-type-product .wp-list-table tbody td {
     padding: 8px 10px;
 }
 
+/* Ensure only our custom stock content is visible */
+body.post-type-product .wp-list-table .column-is_in_stock {
+    position: relative;
+}
+
+/* Hide any WooCommerce default content in stock column */
+body.post-type-product .wp-list-table .column-is_in_stock > *:not(.abs-stock-content) {
+    display: none !important;
+}
+
+/* Make our content visible and properly styled */
+body.post-type-product .wp-list-table .column-is_in_stock .abs-stock-content {
+    display: block;
+}
+
 /* Responsive Admin Styles */
 @media (max-width: 782px) {
     #abs_bundle_products,
