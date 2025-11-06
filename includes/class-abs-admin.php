@@ -206,27 +206,34 @@ class ABS_Admin {
                 }
             }
 
+            // Output with proper structure
+            echo '<div style="white-space: nowrap;">';
+
             if (!$is_in_stock) {
                 echo '<span style="color: #d63638; font-weight: 500;">✗ Out of stock</span>';
                 if (!empty($out_of_stock_items)) {
-                    echo '<br><small style="color: #999;">' . esc_html(implode(', ', array_slice($out_of_stock_items, 0, 2))) . '</small>';
+                    echo '<br><small style="color: #999; display: block; margin-top: 3px; white-space: normal;">' . esc_html(implode(', ', array_slice($out_of_stock_items, 0, 2))) . '</small>';
                 }
             } elseif ($min_stock !== null) {
                 if ($min_stock <= 0) {
                     echo '<span style="color: #d63638; font-weight: 500;">✗ Out of stock</span>';
                 } elseif ($min_stock <= 5) {
                     echo '<span style="color: #dba617; font-weight: 500;">⚠ Low stock</span>';
-                    echo '<br><small style="color: #999;">' . sprintf(__('%d available', 'advanced-bundle-system'), $min_stock) . '</small>';
+                    echo '<br><small style="color: #999; display: block; margin-top: 3px;">' . sprintf(__('%d available', 'advanced-bundle-system'), $min_stock) . '</small>';
                 } else {
                     echo '<span style="color: #00a32a; font-weight: 500;">✓ In stock</span>';
-                    echo '<br><small style="color: #999;">' . sprintf(__('%d available', 'advanced-bundle-system'), $min_stock) . '</small>';
+                    echo '<br><small style="color: #999; display: block; margin-top: 3px;">' . sprintf(__('%d available', 'advanced-bundle-system'), $min_stock) . '</small>';
                 }
             } else {
                 echo '<span style="color: #00a32a; font-weight: 500;">✓ In stock</span>';
             }
+
+            echo '</div>';
         }
         // For regular products
         else {
+            echo '<div style="white-space: nowrap;">';
+
             if ($product->managing_stock()) {
                 $stock_quantity = $product->get_stock_quantity();
                 $stock_status = $product->get_stock_status();
@@ -235,10 +242,10 @@ class ABS_Admin {
                     echo '<span style="color: #d63638; font-weight: 500;">✗ Out of stock</span>';
                 } elseif ($stock_quantity <= 5) {
                     echo '<span style="color: #dba617; font-weight: 500;">⚠ Low stock</span>';
-                    echo '<br><small style="color: #999;">' . sprintf(__('%d in stock', 'advanced-bundle-system'), $stock_quantity) . '</small>';
+                    echo '<br><small style="color: #999; display: block; margin-top: 3px;">' . sprintf(__('%d in stock', 'advanced-bundle-system'), $stock_quantity) . '</small>';
                 } else {
                     echo '<span style="color: #00a32a; font-weight: 500;">✓ In stock</span>';
-                    echo '<br><small style="color: #999;">' . sprintf(__('%d in stock', 'advanced-bundle-system'), $stock_quantity) . '</small>';
+                    echo '<br><small style="color: #999; display: block; margin-top: 3px;">' . sprintf(__('%d in stock', 'advanced-bundle-system'), $stock_quantity) . '</small>';
                 }
             } else {
                 $stock_status = $product->get_stock_status();
@@ -250,6 +257,8 @@ class ABS_Admin {
                     echo '<span style="color: #d63638; font-weight: 500;">✗ Out of stock</span>';
                 }
             }
+
+            echo '</div>';
         }
     }
 
