@@ -17,8 +17,32 @@ class ABS_Admin {
         // Replace WooCommerce's default stock column with our custom one
         // Use priority 999 to ensure we run after WooCommerce
         add_filter('manage_edit-product_columns', array($this, 'add_inventory_column'), 999);
+
+        // Block WooCommerce from rendering is_in_stock content with high priority
+        add_action('manage_product_posts_custom_column', array($this, 'block_woocommerce_stock_column'), 5, 2);
+
+        // Then render our custom column
         add_action('manage_product_posts_custom_column', array($this, 'display_inventory_column'), 10, 2);
         add_filter('manage_edit-product_sortable_columns', array($this, 'make_inventory_column_sortable'));
+    }
+
+    /**
+     * Block WooCommerce from rendering the is_in_stock column content
+     */
+    public function block_woocommerce_stock_column($column, $post_id) {
+        // DEBUG: Log what columns are being called for rendering
+        static $debug_logged = false;
+        if (!$debug_logged) {
+            error_log('=== ABS: Columns being rendered for post ' . $post_id . ' ===');
+            $debug_logged = true;
+        }
+        error_log('Column: ' . $column);
+
+        if ($column === 'is_in_stock') {
+            // Block WooCommerce from outputting content for is_in_stock
+            // We've removed this column from headers, so no content should render
+            return;
+        }
     }
 
     /**
@@ -155,9 +179,19 @@ class ABS_Admin {
      * Display inventory column content
      */
     public function display_inventory_column($column, $post_id) {
+        // DEBUG: Output to console what column is being rendered
+        static $first_product = null;
+        if ($first_product === null) {
+            $first_product = $post_id;
+        }
+        if ($post_id === $first_product) {
+            echo '<script>console.log("Rendering column: ' . esc_js($column) . ' for product ' . $post_id . '");</script>';
+        }
+
         // Handle both our custom column and prevent WooCommerce's is_in_stock from rendering
         if ($column === 'is_in_stock') {
             // Don't render anything for is_in_stock - we replaced it with abs_inventory
+            echo '<script>console.warn("is_in_stock column is still being called!");</script>';
             return;
         }
 
