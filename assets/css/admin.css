@@ -122,9 +122,7 @@
     max-width: 600px;
 }
 
-/* Scope Select2 to only affect bundle product selection */
-#bundle_product_data .select2-container,
-#abs_bundle_items_table .select2-container {
+.select2-container {
     max-width: 600px;
 }
 
@@ -278,19 +276,24 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
     font-style: italic;
 }
 
-/* Ensure the categories column doesn't affect stock column - scoped to products only */
-body.post-type-product .wp-list-table .column-product_cat,
-body.post-type-product .wp-list-table .column-categories {
+/* Bundle Product Icons */
+.product-type-bundle .dashicons-before:before {
+    content: "\f316"; /* Package icon */
+}
+
+/* Ensure the categories column doesn't affect stock column */
+.wp-list-table .column-product_cat,
+.wp-list-table .column-categories {
     white-space: normal;
     vertical-align: top;
 }
 
-/* Fix for potential flex/grid interference - scoped to products only */
-body.post-type-product .wp-list-table tbody tr {
+/* Fix for potential flex/grid interference */
+.wp-list-table tbody tr {
     display: table-row;
 }
 
-body.post-type-product .wp-list-table tbody td {
+.wp-list-table tbody td {
     display: table-cell;
     vertical-align: top;
 }
@@ -391,8 +394,7 @@ body.post-type-product .wp-list-table .column-is_in_stock .abs-stock-content {
 /* Responsive Admin Styles */
 @media (max-width: 782px) {
     #abs_bundle_products,
-    #bundle_product_data .select2-container,
-    #abs_bundle_items_table .select2-container {
+    .select2-container {
         max-width: 100%;
     }
 
