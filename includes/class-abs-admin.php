@@ -14,24 +14,10 @@ class ABS_Admin {
         add_action('wp_ajax_abs_search_products', array($this, 'ajax_search_products'));
         add_action('wp_ajax_abs_calculate_bundle_pricing', array($this, 'ajax_calculate_bundle_pricing'));
 
-        // Add inventory column to products list
+        // Replace WooCommerce's default stock column with our custom one
         add_filter('manage_edit-product_columns', array($this, 'add_inventory_column'));
         add_action('manage_product_posts_custom_column', array($this, 'display_inventory_column'), 10, 2);
         add_filter('manage_edit-product_sortable_columns', array($this, 'make_inventory_column_sortable'));
-
-        // DEBUG: Show columns in admin
-        add_action('admin_notices', array($this, 'debug_show_columns'));
-    }
-
-    /**
-     * DEBUG: Show what columns exist
-     */
-    public function debug_show_columns() {
-        $screen = get_current_screen();
-        if ($screen && $screen->id === 'edit-product') {
-            // This will be populated by the filter
-            echo '<div class="notice notice-info"><p><strong>ABS DEBUG:</strong> Check browser console for column list</p></div>';
-        }
     }
 
     /**
@@ -135,59 +121,18 @@ class ABS_Admin {
     }
 
     /**
-     * Add inventory column to products list
+     * Replace WooCommerce's default stock column with our custom inventory column
      */
     public function add_inventory_column($columns) {
-        // DEBUG: Log all existing columns to understand what WooCommerce provides
-        error_log('=== ABS DEBUG: WooCommerce Product Columns ===');
-        error_log(print_r($columns, true));
-        error_log('==============================================');
-
-        // DEBUG: Output to browser console
-        add_action('admin_footer', function() use ($columns) {
-            echo '<script>console.log("WooCommerce Columns:", ' . json_encode($columns) . ');</script>';
-        });
-
-        // Insert inventory column after the price column
         $new_columns = array();
-        $inserted = false;
 
         foreach ($columns as $key => $value) {
-            $new_columns[$key] = $value;
-
-            // Insert after price column (preferred position)
-            if ($key === 'price') {
+            // Replace WooCommerce's is_in_stock column with our abs_inventory column
+            if ($key === 'is_in_stock') {
                 $new_columns['abs_inventory'] = __('Stock', 'advanced-bundle-system');
-                $inserted = true;
+            } else {
+                $new_columns[$key] = $value;
             }
-        }
-
-        // If price column wasn't found, insert before categories/product_cat
-        if (!$inserted) {
-            $final_columns = array();
-            foreach ($new_columns as $key => $value) {
-                // Insert before product_cat or categories column
-                if ($key === 'product_cat' || $key === 'categories') {
-                    $final_columns['abs_inventory'] = __('Stock', 'advanced-bundle-system');
-                    $inserted = true;
-                }
-                $final_columns[$key] = $value;
-            }
-
-            // If still not inserted, add before the last column
-            if (!$inserted && count($final_columns) > 0) {
-                $last_key = array_key_last($final_columns);
-                $temp_columns = array();
-                foreach ($final_columns as $key => $value) {
-                    if ($key === $last_key) {
-                        $temp_columns['abs_inventory'] = __('Stock', 'advanced-bundle-system');
-                    }
-                    $temp_columns[$key] = $value;
-                }
-                return $temp_columns;
-            }
-
-            return $final_columns;
         }
 
         return $new_columns;

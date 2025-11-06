@@ -331,6 +331,11 @@ body.post-type-product .wp-list-table {
     width: 100%;
 }
 
+/* Hide WooCommerce's default stock column - we replace it with abs_inventory */
+body.post-type-product .wp-list-table .column-is_in_stock {
+    display: none !important;
+}
+
 /* Define explicit column widths to prevent overlap */
 body.post-type-product .wp-list-table .column-cb {
     width: 2.2em;
@@ -349,9 +354,7 @@ body.post-type-product .wp-list-table .column-sku {
     width: 120px;
 }
 
-body.post-type-product .wp-list-table .column-stock,
-body.post-type-product .wp-list-table .column-abs_inventory,
-body.post-type-product .wp-list-table .column-stock_status {
+body.post-type-product .wp-list-table .column-abs_inventory {
     width: 140px;
 }
 
