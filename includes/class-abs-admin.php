@@ -18,6 +18,20 @@ class ABS_Admin {
         add_filter('manage_edit-product_columns', array($this, 'add_inventory_column'));
         add_action('manage_product_posts_custom_column', array($this, 'display_inventory_column'), 10, 2);
         add_filter('manage_edit-product_sortable_columns', array($this, 'make_inventory_column_sortable'));
+
+        // DEBUG: Show columns in admin
+        add_action('admin_notices', array($this, 'debug_show_columns'));
+    }
+
+    /**
+     * DEBUG: Show what columns exist
+     */
+    public function debug_show_columns() {
+        $screen = get_current_screen();
+        if ($screen && $screen->id === 'edit-product') {
+            // This will be populated by the filter
+            echo '<div class="notice notice-info"><p><strong>ABS DEBUG:</strong> Check browser console for column list</p></div>';
+        }
     }
 
     /**
@@ -124,6 +138,16 @@ class ABS_Admin {
      * Add inventory column to products list
      */
     public function add_inventory_column($columns) {
+        // DEBUG: Log all existing columns to understand what WooCommerce provides
+        error_log('=== ABS DEBUG: WooCommerce Product Columns ===');
+        error_log(print_r($columns, true));
+        error_log('==============================================');
+
+        // DEBUG: Output to browser console
+        add_action('admin_footer', function() use ($columns) {
+            echo '<script>console.log("WooCommerce Columns:", ' . json_encode($columns) . ');</script>';
+        });
+
         // Insert inventory column after the price column
         $new_columns = array();
         $inserted = false;
