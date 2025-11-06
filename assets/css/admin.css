@@ -286,6 +286,12 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
     width: 120px;
     text-align: left;
     white-space: nowrap;
+    vertical-align: top;
+}
+
+.wp-list-table .column-abs_inventory > div {
+    display: block;
+    white-space: nowrap;
 }
 
 .wp-list-table .column-abs_inventory small {
@@ -293,6 +299,30 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
     margin-top: 3px;
     font-size: 12px;
     white-space: normal;
+    word-wrap: break-word;
+    max-width: 120px;
+}
+
+.wp-list-table .column-abs_inventory span {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* Ensure the categories column doesn't affect stock column */
+.wp-list-table .column-product_cat,
+.wp-list-table .column-categories {
+    white-space: normal;
+    vertical-align: top;
+}
+
+/* Fix for potential flex/grid interference */
+.wp-list-table tbody tr {
+    display: table-row;
+}
+
+.wp-list-table tbody td {
+    display: table-cell;
+    vertical-align: top;
 }
 
 /* Responsive Admin Styles */
@@ -310,5 +340,10 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
 
     .wp-list-table .column-abs_inventory {
         width: auto;
+        white-space: normal;
+    }
+
+    .wp-list-table .column-abs_inventory small {
+        max-width: 100%;
     }
 }
