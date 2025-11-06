@@ -204,71 +204,83 @@ class ABS_Product_Type {
     public function show_bundle_products_attributes() {
         global $post;
 
-        // Only show for bundle products
-        $product_type = get_post_meta($post->ID, '_product_type', true);
+        if (!$post) {
+            return;
+        }
+
+        // Check using product type selector value
+        $product_type = isset($_GET['post']) ? get_post_meta($_GET['post'], '_product_type', true) : '';
+
+        // Also check if it's a new product being created as bundle
+        if (isset($_GET['product_type']) && $_GET['product_type'] === 'bundle') {
+            $product_type = 'bundle';
+        }
+
+        // If still not bundle, check the POST meta
+        if ($product_type !== 'bundle') {
+            $product_type = get_post_meta($post->ID, '_product_type', true);
+        }
+
         if ($product_type !== 'bundle') {
             return;
         }
 
         $bundle_items = get_post_meta($post->ID, '_bundle_items', true);
-        if (empty($bundle_items) || !is_array($bundle_items)) {
-            ?>
-            <div class="options_group show_if_bundle" style="padding: 12px;">
+
+        ?>
+        <div class="options_group show_if_bundle" style="padding: 12px; border: 1px solid #ddd; background: #fff;">
+            <h4 style="margin: 0 0 15px 0;"><?php _e('Bundle Products Attributes', 'advanced-bundle-system'); ?></h4>
+
+            <?php if (empty($bundle_items) || !is_array($bundle_items)): ?>
                 <p style="color: #666; font-style: italic;">
                     <?php _e('No products added to bundle yet. Add products in the General tab to see their attributes here.', 'advanced-bundle-system'); ?>
                 </p>
-            </div>
-            <?php
-            return;
-        }
+            <?php else: ?>
+                <p style="color: #666; margin-bottom: 15px;">
+                    <?php _e('These are the attributes available in the products included in this bundle:', 'advanced-bundle-system'); ?>
+                </p>
 
-        ?>
-        <div class="options_group show_if_bundle" style="padding: 12px;">
-            <h4 style="margin: 0 0 15px 0;"><?php _e('Bundle Products Attributes', 'advanced-bundle-system'); ?></h4>
-            <p style="color: #666; margin-bottom: 15px;">
-                <?php _e('These are the attributes available in the products included in this bundle:', 'advanced-bundle-system'); ?>
-            </p>
+                <?php
+                foreach ($bundle_items as $index => $item) {
+                    $product = wc_get_product($item['product_id']);
+                    if (!$product) {
+                        continue;
+                    }
 
-            <?php
-            foreach ($bundle_items as $index => $item) {
-                $product = wc_get_product($item['product_id']);
-                if (!$product) {
-                    continue;
-                }
+                    echo '<div style="margin-bottom: 20px; padding: 12px; background: #f9f9f9; border-left: 3px solid #2271b1; border-radius: 3px;">';
+                    echo '<h5 style="margin: 0 0 10px 0; color: #2271b1;">' . esc_html($product->get_name()) . ' (#' . esc_html($item['product_id']) . ')</h5>';
 
-                echo '<div style="margin-bottom: 20px; padding: 12px; background: #f9f9f9; border-left: 3px solid #2271b1; border-radius: 3px;">';
-                echo '<h5 style="margin: 0 0 10px 0; color: #2271b1;">' . esc_html($product->get_name()) . ' (#' . esc_html($item['product_id']) . ')</h5>';
+                    if ($product->is_type('variable')) {
+                        $attributes = $product->get_attributes();
 
-                if ($product->is_type('variable')) {
-                    $attributes = $product->get_attributes();
+                        if (!empty($attributes)) {
+                            foreach ($attributes as $attribute_name => $attribute) {
+                                if ($attribute->is_taxonomy()) {
+                                    $terms = wc_get_product_terms($item['product_id'], $attribute_name, array('fields' => 'names'));
+                                    $attribute_label = wc_attribute_label($attribute_name);
+                                } else {
+                                    $terms = $attribute->get_options();
+                                    $attribute_label = $attribute->get_name();
+                                }
 
-                    if (!empty($attributes)) {
-                        foreach ($attributes as $attribute_name => $attribute) {
-                            if ($attribute->is_taxonomy()) {
-                                $terms = wc_get_product_terms($item['product_id'], $attribute_name, array('fields' => 'names'));
-                                $attribute_label = wc_attribute_label($attribute_name);
-                            } else {
-                                $terms = $attribute->get_options();
-                                $attribute_label = $attribute->get_name();
+                                if (!empty($terms)) {
+                                    echo '<div style="margin-bottom: 8px;">';
+                                    echo '<strong style="color: #555;">' . esc_html($attribute_label) . ':</strong> ';
+                                    echo '<span style="color: #666;">' . esc_html(is_array($terms) ? implode(', ', $terms) : $terms) . '</span>';
+                                    echo '</div>';
+                                }
                             }
-
-                            if (!empty($terms)) {
-                                echo '<div style="margin-bottom: 8px;">';
-                                echo '<strong style="color: #555;">' . esc_html($attribute_label) . ':</strong> ';
-                                echo '<span style="color: #666;">' . esc_html(is_array($terms) ? implode(', ', $terms) : $terms) . '</span>';
-                                echo '</div>';
-                            }
+                        } else {
+                            echo '<p style="color: #999; font-style: italic; margin: 0;">' . __('No attributes configured for this product.', 'advanced-bundle-system') . '</p>';
                         }
                     } else {
-                        echo '<p style="color: #999; font-style: italic; margin: 0;">' . __('No attributes configured for this product.', 'advanced-bundle-system') . '</p>';
+                        echo '<p style="color: #999; font-style: italic; margin: 0;">' . __('This is a simple product (no variations).', 'advanced-bundle-system') . '</p>';
                     }
-                } else {
-                    echo '<p style="color: #999; font-style: italic; margin: 0;">' . __('This is a simple product (no variations).', 'advanced-bundle-system') . '</p>';
-                }
 
-                echo '</div>';
-            }
-            ?>
+                    echo '</div>';
+                }
+                ?>
+            <?php endif; ?>
         </div>
         <?php
     }
