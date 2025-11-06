@@ -130,21 +130,39 @@ class ABS_Admin {
 
         foreach ($columns as $key => $value) {
             $new_columns[$key] = $value;
+
+            // Insert after price column (preferred position)
             if ($key === 'price') {
                 $new_columns['abs_inventory'] = __('Stock', 'advanced-bundle-system');
                 $inserted = true;
             }
         }
 
-        // If price column wasn't found, add it before product_cat
+        // If price column wasn't found, insert before categories/product_cat
         if (!$inserted) {
             $final_columns = array();
             foreach ($new_columns as $key => $value) {
-                if ($key === 'product_cat') {
+                // Insert before product_cat or categories column
+                if ($key === 'product_cat' || $key === 'categories') {
                     $final_columns['abs_inventory'] = __('Stock', 'advanced-bundle-system');
+                    $inserted = true;
                 }
                 $final_columns[$key] = $value;
             }
+
+            // If still not inserted, add before the last column
+            if (!$inserted && count($final_columns) > 0) {
+                $last_key = array_key_last($final_columns);
+                $temp_columns = array();
+                foreach ($final_columns as $key => $value) {
+                    if ($key === $last_key) {
+                        $temp_columns['abs_inventory'] = __('Stock', 'advanced-bundle-system');
+                    }
+                    $temp_columns[$key] = $value;
+                }
+                return $temp_columns;
+            }
+
             return $final_columns;
         }
 

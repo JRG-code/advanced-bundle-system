@@ -325,6 +325,90 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
     vertical-align: top;
 }
 
+/* Fix for overlapping table headers - ensure proper column layout */
+body.post-type-product .wp-list-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* Define explicit column widths to prevent overlap */
+body.post-type-product .wp-list-table .column-cb {
+    width: 2.2em;
+}
+
+body.post-type-product .wp-list-table .column-thumb {
+    width: 52px;
+}
+
+body.post-type-product .wp-list-table .column-name {
+    width: auto;
+    min-width: 200px;
+}
+
+body.post-type-product .wp-list-table .column-sku {
+    width: 120px;
+}
+
+body.post-type-product .wp-list-table .column-stock,
+body.post-type-product .wp-list-table .column-abs_inventory,
+body.post-type-product .wp-list-table .column-stock_status {
+    width: 140px;
+}
+
+body.post-type-product .wp-list-table .column-price {
+    width: 100px;
+}
+
+body.post-type-product .wp-list-table .column-product_cat,
+body.post-type-product .wp-list-table .column-categories {
+    width: 150px;
+}
+
+body.post-type-product .wp-list-table .column-product_tag,
+body.post-type-product .wp-list-table .column-tags {
+    width: 120px;
+}
+
+body.post-type-product .wp-list-table .column-featured,
+body.post-type-product .wp-list-table .column-product_type {
+    width: 50px;
+}
+
+body.post-type-product .wp-list-table .column-date {
+    width: 140px;
+}
+
+/* Prevent header overlap with proper positioning */
+body.post-type-product .wp-list-table thead th {
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 8px 10px;
+    box-sizing: border-box;
+}
+
+/* Fix body cells to match header structure */
+body.post-type-product .wp-list-table tbody td {
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 8px 10px;
+}
+
+/* Ensure stock column has proper styling within products table */
+body.post-type-product .wp-list-table .column-abs_inventory {
+    text-align: left;
+    vertical-align: top;
+}
+
+body.post-type-product .wp-list-table .column-abs_inventory small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    white-space: normal;
+}
+
 /* Responsive Admin Styles */
 @media (max-width: 782px) {
     #abs_bundle_products,
@@ -338,12 +422,24 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
         gap: 5px;
     }
 
-    .wp-list-table .column-abs_inventory {
+    /* Reset table layout for mobile */
+    body.post-type-product .wp-list-table {
+        table-layout: auto;
+    }
+
+    body.post-type-product .wp-list-table .column-abs_inventory {
         width: auto;
         white-space: normal;
     }
 
-    .wp-list-table .column-abs_inventory small {
+    body.post-type-product .wp-list-table .column-abs_inventory small {
         max-width: 100%;
+    }
+
+    /* Allow columns to be flexible on mobile */
+    body.post-type-product .wp-list-table thead th,
+    body.post-type-product .wp-list-table tbody td {
+        width: auto !important;
+        min-width: unset;
     }
 }
