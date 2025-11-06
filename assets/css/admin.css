@@ -281,33 +281,6 @@ body.post-type-product.product-type-bundle ._low_stock_amount_field {
     content: "\f316"; /* Package icon */
 }
 
-/* Inventory Column in Products List */
-.wp-list-table .column-abs_inventory {
-    width: 120px;
-    text-align: left;
-    white-space: nowrap;
-    vertical-align: top;
-}
-
-.wp-list-table .column-abs_inventory > div {
-    display: block;
-    white-space: nowrap;
-}
-
-.wp-list-table .column-abs_inventory small {
-    display: block;
-    margin-top: 3px;
-    font-size: 12px;
-    white-space: normal;
-    word-wrap: break-word;
-    max-width: 120px;
-}
-
-.wp-list-table .column-abs_inventory span {
-    display: inline-block;
-    white-space: nowrap;
-}
-
 /* Ensure the categories column doesn't affect stock column */
 .wp-list-table .column-product_cat,
 .wp-list-table .column-categories {
@@ -331,11 +304,6 @@ body.post-type-product .wp-list-table {
     width: 100%;
 }
 
-/* Hide WooCommerce's default stock column - we replace it with abs_inventory */
-body.post-type-product .wp-list-table .column-is_in_stock {
-    display: none !important;
-}
-
 /* Define explicit column widths to prevent overlap */
 body.post-type-product .wp-list-table .column-cb {
     width: 2.2em;
@@ -354,8 +322,17 @@ body.post-type-product .wp-list-table .column-sku {
     width: 120px;
 }
 
-body.post-type-product .wp-list-table .column-abs_inventory {
+body.post-type-product .wp-list-table .column-is_in_stock {
     width: 140px;
+    text-align: left;
+    vertical-align: top;
+}
+
+body.post-type-product .wp-list-table .column-is_in_stock small {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    white-space: normal;
 }
 
 body.post-type-product .wp-list-table .column-price {
@@ -399,19 +376,6 @@ body.post-type-product .wp-list-table tbody td {
     padding: 8px 10px;
 }
 
-/* Ensure stock column has proper styling within products table */
-body.post-type-product .wp-list-table .column-abs_inventory {
-    text-align: left;
-    vertical-align: top;
-}
-
-body.post-type-product .wp-list-table .column-abs_inventory small {
-    display: block;
-    margin-top: 3px;
-    font-size: 12px;
-    white-space: normal;
-}
-
 /* Responsive Admin Styles */
 @media (max-width: 782px) {
     #abs_bundle_products,
@@ -430,12 +394,12 @@ body.post-type-product .wp-list-table .column-abs_inventory small {
         table-layout: auto;
     }
 
-    body.post-type-product .wp-list-table .column-abs_inventory {
+    body.post-type-product .wp-list-table .column-is_in_stock {
         width: auto;
         white-space: normal;
     }
 
-    body.post-type-product .wp-list-table .column-abs_inventory small {
+    body.post-type-product .wp-list-table .column-is_in_stock small {
         max-width: 100%;
     }
 
