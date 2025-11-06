@@ -3,7 +3,7 @@
  * Plugin Name: Advanced Bundle System
  * Plugin URI: https://github.com/JRG-code/advanced-bundle-system
  * Description: Advanced bundle system for WooCommerce with personalization features including real-time preview overlay
- * Version: 1.1.4
+ * Version: 1.1.5
  * Author: JRG Code
  * Author URI: https://github.com/JRG-code
  * Text Domain: advanced-bundle-system
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('ABS_VERSION', '1.1.4');
+define('ABS_VERSION', '1.1.5');
 define('ABS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ABS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ABS_PLUGIN_BASENAME', plugin_basename(__FILE__));
