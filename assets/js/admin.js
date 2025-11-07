@@ -51,8 +51,8 @@
             var productType = $('#product-type').val();
 
             if (productType === 'bundle') {
-                // Add class to body for CSS targeting
-                $('body').addClass('product-type-bundle');
+                // Add class to body for CSS targeting (use specific class to avoid conflicts)
+                $('body').addClass('abs-editing-bundle-product');
 
                 $('.show_if_bundle').show();
                 $('.hide_if_bundle').hide();
@@ -83,7 +83,7 @@
                 $('#bundle_product_data').show();
             } else {
                 // Remove class from body
-                $('body').removeClass('product-type-bundle');
+                $('body').removeClass('abs-editing-bundle-product');
 
                 $('.show_if_bundle').hide();
 
