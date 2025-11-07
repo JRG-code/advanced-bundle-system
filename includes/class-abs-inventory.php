@@ -1,0 +1,300 @@
+<?php
+/**
+ * Centralized Inventory Management
+ *
+ * @package Advanced_Bundle_System
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class ABS_Inventory {
+
+    private static $instance = null;
+
+    public static function get_instance() {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    private function __construct() {
+        add_action('admin_menu', array($this, 'add_inventory_menu'), 60);
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_inventory_assets'));
+        add_action('wp_ajax_abs_update_stock', array($this, 'ajax_update_stock'));
+        add_action('woocommerce_product_options_inventory_product_data', array($this, 'add_inventory_notice'));
+    }
+
+    public function add_inventory_menu() {
+        add_submenu_page(
+            'edit.php?post_type=product',
+            __('Inventory Manager', 'advanced-bundle-system'),
+            __('Inventory', 'advanced-bundle-system'),
+            'manage_woocommerce',
+            'abs-inventory',
+            array($this, 'render_inventory_page')
+        );
+    }
+
+    public function enqueue_inventory_assets($hook) {
+        if ('product_page_abs-inventory' !== $hook) {
+            return;
+        }
+
+        wp_enqueue_style('abs-inventory', ABS_PLUGIN_URL . 'assets/css/inventory.css', array(), ABS_VERSION);
+        wp_enqueue_script('abs-inventory', ABS_PLUGIN_URL . 'assets/js/inventory.js', array('jquery'), ABS_VERSION, true);
+
+        wp_localize_script('abs-inventory', 'absInventory', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('abs_inventory_nonce'),
+            'strings' => array(
+                'saving' => __('Saving...', 'advanced-bundle-system'),
+                'saved' => __('Saved!', 'advanced-bundle-system'),
+                'error' => __('Error saving', 'advanced-bundle-system'),
+            ),
+        ));
+    }
+
+    public function render_inventory_page() {
+        ?>
+        <div class="wrap abs-inventory-page">
+            <h1><?php _e('Inventory Manager', 'advanced-bundle-system'); ?></h1>
+            <p class="description">
+                <?php _e('Manage all your product inventory in one place. Changes here update automatically across all products and bundles.', 'advanced-bundle-system'); ?>
+            </p>
+
+            <div class="abs-inventory-filters">
+                <label>
+                    <?php _e('Filter:', 'advanced-bundle-system'); ?>
+                    <select id="abs-inventory-filter">
+                        <option value="all"><?php _e('All Products', 'advanced-bundle-system'); ?></option>
+                        <option value="low"><?php _e('Low Stock (≤ 5)', 'advanced-bundle-system'); ?></option>
+                        <option value="out"><?php _e('Out of Stock', 'advanced-bundle-system'); ?></option>
+                        <option value="variable"><?php _e('Variable Products Only', 'advanced-bundle-system'); ?></option>
+                    </select>
+                </label>
+
+                <label>
+                    <?php _e('Search:', 'advanced-bundle-system'); ?>
+                    <input type="text" id="abs-inventory-search" placeholder="<?php _e('Search products...', 'advanced-bundle-system'); ?>">
+                </label>
+            </div>
+
+            <table class="wp-list-table widefat fixed striped abs-inventory-table">
+                <thead>
+                    <tr>
+                        <th class="abs-col-product"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                        <th class="abs-col-variation"><?php _e('Variation', 'advanced-bundle-system'); ?></th>
+                        <th class="abs-col-sku"><?php _e('SKU', 'advanced-bundle-system'); ?></th>
+                        <th class="abs-col-stock"><?php _e('Stock', 'advanced-bundle-system'); ?></th>
+                        <th class="abs-col-used"><?php _e('Used In', 'advanced-bundle-system'); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="abs-inventory-tbody">
+                    <?php $this->render_inventory_rows(); ?>
+                </tbody>
+            </table>
+
+            <div class="abs-inventory-legend">
+                <h3><?php _e('Legend:', 'advanced-bundle-system'); ?></h3>
+                <ul>
+                    <li><span class="abs-stock-status abs-in-stock">●</span> <?php _e('In Stock', 'advanced-bundle-system'); ?></li>
+                    <li><span class="abs-stock-status abs-low-stock">●</span> <?php _e('Low Stock (≤ 5)', 'advanced-bundle-system'); ?></li>
+                    <li><span class="abs-stock-status abs-out-of-stock">●</span> <?php _e('Out of Stock', 'advanced-bundle-system'); ?></li>
+                </ul>
+            </div>
+        </div>
+        <?php
+    }
+
+    private function render_inventory_rows() {
+        $args = array(
+            'post_type' => 'product',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+        );
+
+        $products = get_posts($args);
+
+        foreach ($products as $product_post) {
+            $product = wc_get_product($product_post->ID);
+            if (!$product) continue;
+
+            if ($product->is_type('variable')) {
+                $variations = $product->get_available_variations();
+                foreach ($variations as $variation_data) {
+                    $variation = wc_get_product($variation_data['variation_id']);
+                    if ($variation) {
+                        $this->render_product_row($product, $variation, $variation_data);
+                    }
+                }
+            } else {
+                $this->render_product_row($product);
+            }
+        }
+    }
+
+    private function render_product_row($product, $variation = null, $variation_data = null) {
+        $is_variation = !is_null($variation);
+        $item = $is_variation ? $variation : $product;
+        $product_id = $product->get_id();
+        $item_id = $item->get_id();
+
+        $managing_stock = $item->managing_stock();
+        $stock_quantity = $managing_stock ? $item->get_stock_quantity() : '';
+        $stock_status = $item->get_stock_status();
+
+        $stock_class = 'abs-in-stock';
+        if ($stock_status === 'outofstock' || ($managing_stock && $stock_quantity <= 0)) {
+            $stock_class = 'abs-out-of-stock';
+        } elseif ($managing_stock && $stock_quantity <= 5) {
+            $stock_class = 'abs-low-stock';
+        }
+
+        $variation_name = '';
+        if ($is_variation && $variation_data) {
+            $attributes = array();
+            foreach ($variation_data['attributes'] as $attr_name => $attr_value) {
+                $attributes[] = ucfirst(str_replace('attribute_pa_', '', $attr_name)) . ': ' . ucfirst($attr_value);
+            }
+            $variation_name = implode(', ', $attributes);
+        }
+
+        $used_in = $this->get_product_usage($item_id, $product_id);
+        ?>
+        <tr class="abs-inventory-row <?php echo esc_attr($stock_class); ?>" data-product-id="<?php echo esc_attr($item_id); ?>">
+            <td class="abs-col-product">
+                <strong><?php echo esc_html($product->get_name()); ?></strong>
+                <div class="row-actions">
+                    <span><a href="<?php echo get_edit_post_link($product_id); ?>" target="_blank"><?php _e('Edit Product', 'advanced-bundle-system'); ?></a></span>
+                </div>
+            </td>
+            <td class="abs-col-variation">
+                <?php echo $variation_name ? esc_html($variation_name) : '—'; ?>
+            </td>
+            <td class="abs-col-sku">
+                <?php echo $item->get_sku() ? esc_html($item->get_sku()) : '—'; ?>
+            </td>
+            <td class="abs-col-stock">
+                <span class="abs-stock-status <?php echo esc_attr($stock_class); ?>">●</span>
+                <?php if ($managing_stock): ?>
+                    <input type="number" class="abs-stock-input" value="<?php echo esc_attr($stock_quantity); ?>" min="0" step="1" data-original="<?php echo esc_attr($stock_quantity); ?>" />
+                    <button class="button abs-save-stock" style="display:none;"><?php _e('Save', 'advanced-bundle-system'); ?></button>
+                    <span class="abs-save-feedback"></span>
+                <?php else: ?>
+                    <em><?php _e('Not managed', 'advanced-bundle-system'); ?></em>
+                <?php endif; ?>
+            </td>
+            <td class="abs-col-used">
+                <?php if (!empty($used_in)): ?>
+                    <ul class="abs-used-in-list">
+                        <?php foreach ($used_in as $usage): ?>
+                            <li>
+                                <a href="<?php echo get_edit_post_link($usage['id']); ?>" target="_blank">
+                                    <?php echo esc_html($usage['title']); ?>
+                                </a>
+                                <span class="abs-usage-type">(<?php echo esc_html($usage['type']); ?>)</span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <em><?php _e('Not used in bundles', 'advanced-bundle-system'); ?></em>
+                <?php endif; ?>
+            </td>
+        </tr>
+        <?php
+    }
+
+    private function get_product_usage($item_id, $product_id) {
+        $used_in = array();
+        $bundle_args = array(
+            'post_type' => 'product',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'meta_query' => array(
+                array(
+                    'key' => '_product_type',
+                    'value' => 'bundle',
+                ),
+            ),
+        );
+
+        $bundles = get_posts($bundle_args);
+        foreach ($bundles as $bundle_post) {
+            $bundle_items = get_post_meta($bundle_post->ID, '_bundle_items', true);
+            if (is_array($bundle_items)) {
+                foreach ($bundle_items as $item) {
+                    if (isset($item['product_id']) && (int)$item['product_id'] === (int)$product_id) {
+                        $used_in[] = array(
+                            'id' => $bundle_post->ID,
+                            'title' => get_the_title($bundle_post->ID),
+                            'type' => 'Bundle',
+                        );
+                        break;
+                    }
+                }
+            }
+        }
+        return $used_in;
+    }
+
+    public function ajax_update_stock() {
+        check_ajax_referer('abs_inventory_nonce', 'nonce');
+
+        if (!current_user_can('manage_woocommerce')) {
+            wp_send_json_error(array('message' => __('Insufficient permissions', 'advanced-bundle-system')));
+        }
+
+        $product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
+        $stock_quantity = isset($_POST['stock_quantity']) ? absint($_POST['stock_quantity']) : 0;
+
+        if (!$product_id) {
+            wp_send_json_error(array('message' => __('Invalid product ID', 'advanced-bundle-system')));
+        }
+
+        $product = wc_get_product($product_id);
+        if (!$product) {
+            wp_send_json_error(array('message' => __('Product not found', 'advanced-bundle-system')));
+        }
+
+        $product->set_stock_quantity($stock_quantity);
+        $product->set_manage_stock(true);
+
+        if ($stock_quantity > 0) {
+            $product->set_stock_status('instock');
+        } else {
+            $product->set_stock_status('outofstock');
+        }
+
+        $product->save();
+
+        wp_send_json_success(array(
+            'message' => __('Stock updated successfully', 'advanced-bundle-system'),
+            'stock_quantity' => $stock_quantity,
+        ));
+    }
+
+    public function add_inventory_notice() {
+        global $post;
+        if (!$post) return;
+
+        $product = wc_get_product($post->ID);
+        if (!$product) return;
+        ?>
+        <div class="abs-inventory-notice" style="padding: 12px; background: #e3f2fd; border-left: 4px solid #2196f3; margin: 12px 0;">
+            <p style="margin: 0;">
+                <strong><?php _e('💡 Tip:', 'advanced-bundle-system'); ?></strong>
+                <?php _e('For easier inventory management, use the', 'advanced-bundle-system'); ?>
+                <a href="<?php echo admin_url('edit.php?post_type=product&page=abs-inventory'); ?>">
+                    <?php _e('Centralized Inventory Manager', 'advanced-bundle-system'); ?>
+                </a>
+                <?php _e('to see all products, their variations, and where they\'re used in bundles.', 'advanced-bundle-system'); ?>
+            </p>
+        </div>
+        <?php
+    }
+}
+
+ABS_Inventory::get_instance();
