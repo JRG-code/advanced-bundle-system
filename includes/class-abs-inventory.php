@@ -28,18 +28,20 @@ class ABS_Inventory {
     }
 
     public function add_inventory_menu() {
-        add_submenu_page(
-            'edit.php?post_type=product',
-            __('Inventory Manager', 'advanced-bundle-system'),
-            __('Inventory', 'advanced-bundle-system'),
-            'manage_woocommerce',
-            'abs-inventory',
-            array($this, 'render_inventory_page')
+        // Add top-level menu page
+        add_menu_page(
+            __('Inventory Manager', 'advanced-bundle-system'),  // Page title
+            __('Inventory', 'advanced-bundle-system'),          // Menu title
+            'manage_woocommerce',                                // Capability
+            'abs-inventory',                                     // Menu slug
+            array($this, 'render_inventory_page'),              // Callback
+            'dashicons-clipboard',                               // Icon
+            56                                                   // Position (after WooCommerce)
         );
     }
 
     public function enqueue_inventory_assets($hook) {
-        if ('product_page_abs-inventory' !== $hook) {
+        if ('toplevel_page_abs-inventory' !== $hook) {
             return;
         }
 
@@ -287,7 +289,7 @@ class ABS_Inventory {
             <p style="margin: 0;">
                 <strong><?php _e('💡 Tip:', 'advanced-bundle-system'); ?></strong>
                 <?php _e('For easier inventory management, use the', 'advanced-bundle-system'); ?>
-                <a href="<?php echo admin_url('edit.php?post_type=product&page=abs-inventory'); ?>">
+                <a href="<?php echo admin_url('admin.php?page=abs-inventory'); ?>">
                     <?php _e('Centralized Inventory Manager', 'advanced-bundle-system'); ?>
                 </a>
                 <?php _e('to see all products, their variations, and where they\'re used in bundles.', 'advanced-bundle-system'); ?>
