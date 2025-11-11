@@ -24,6 +24,7 @@ class ABS_Inventory {
         add_action('admin_menu', array($this, 'add_inventory_menu'), 60);
         add_action('admin_enqueue_scripts', array($this, 'enqueue_inventory_assets'));
         add_action('wp_ajax_abs_update_stock', array($this, 'ajax_update_stock'));
+        add_action('wp_ajax_abs_update_sku', array($this, 'ajax_update_sku'));
         add_action('woocommerce_product_options_inventory_product_data', array($this, 'add_inventory_notice'));
     }
 
@@ -222,7 +223,9 @@ class ABS_Inventory {
                 ?>
             </td>
             <td class="abs-col-sku">
-                <?php echo $variation->get_sku() ? esc_html($variation->get_sku()) : '—'; ?>
+                <input type="text" class="abs-sku-input" value="<?php echo esc_attr($variation->get_sku()); ?>" placeholder="<?php _e('No SKU', 'advanced-bundle-system'); ?>" data-original="<?php echo esc_attr($variation->get_sku()); ?>" />
+                <button class="button abs-save-sku" style="display:none;"><?php _e('Save', 'advanced-bundle-system'); ?></button>
+                <span class="abs-sku-feedback"></span>
             </td>
             <td class="abs-col-stock">
                 <span class="abs-stock-status <?php echo esc_attr($stock_class); ?>">●</span>
@@ -267,7 +270,9 @@ class ABS_Inventory {
             </td>
             <td class="abs-col-variation">—</td>
             <td class="abs-col-sku">
-                <?php echo $product->get_sku() ? esc_html($product->get_sku()) : '—'; ?>
+                <input type="text" class="abs-sku-input" value="<?php echo esc_attr($product->get_sku()); ?>" placeholder="<?php _e('No SKU', 'advanced-bundle-system'); ?>" data-original="<?php echo esc_attr($product->get_sku()); ?>" />
+                <button class="button abs-save-sku" style="display:none;"><?php _e('Save', 'advanced-bundle-system'); ?></button>
+                <span class="abs-sku-feedback"></span>
             </td>
             <td class="abs-col-stock">
                 <span class="abs-stock-status <?php echo esc_attr($stock_class); ?>">●</span>
@@ -365,6 +370,42 @@ class ABS_Inventory {
         wp_send_json_success(array(
             'message' => __('Stock updated successfully', 'advanced-bundle-system'),
             'stock_quantity' => $stock_quantity,
+        ));
+    }
+
+    public function ajax_update_sku() {
+        check_ajax_referer('abs_inventory_nonce', 'nonce');
+
+        if (!current_user_can('manage_woocommerce')) {
+            wp_send_json_error(array('message' => __('Insufficient permissions', 'advanced-bundle-system')));
+        }
+
+        $product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
+        $sku = isset($_POST['sku']) ? sanitize_text_field($_POST['sku']) : '';
+
+        if (!$product_id) {
+            wp_send_json_error(array('message' => __('Invalid product ID', 'advanced-bundle-system')));
+        }
+
+        $product = wc_get_product($product_id);
+        if (!$product) {
+            wp_send_json_error(array('message' => __('Product not found', 'advanced-bundle-system')));
+        }
+
+        // Check if SKU is unique (if not empty)
+        if (!empty($sku)) {
+            $existing_id = wc_get_product_id_by_sku($sku);
+            if ($existing_id && $existing_id !== $product_id) {
+                wp_send_json_error(array('message' => __('SKU already exists on another product', 'advanced-bundle-system')));
+            }
+        }
+
+        $product->set_sku($sku);
+        $product->save();
+
+        wp_send_json_success(array(
+            'message' => __('SKU updated successfully', 'advanced-bundle-system'),
+            'sku' => $sku,
         ));
     }
 
