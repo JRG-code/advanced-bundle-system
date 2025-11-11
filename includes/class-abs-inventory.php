@@ -123,26 +123,92 @@ class ABS_Inventory {
             'return' => 'objects',
         ));
 
+        // Separate products into categories
+        $bundles = array();
+        $products_in_bundles = array();
+        $other_products = array();
+
         foreach ($products as $product) {
             if (!$product) continue;
 
-            if ($product->is_type('variable')) {
-                // Render parent product header row
-                $this->render_parent_product_row($product);
-
-                // Render variation rows (indented)
-                // Use get_children() instead of get_available_variations() for better performance
-                $variation_ids = $product->get_children();
-                foreach ($variation_ids as $variation_id) {
-                    $variation = wc_get_product($variation_id);
-                    if ($variation && $variation->is_type('variation')) {
-                        $this->render_variation_row($product, $variation);
-                    }
-                }
+            if ($product->is_type('bundle')) {
+                $bundles[] = $product;
             } else {
+                // Check if product is used in any bundle
+                $used_in = $this->get_product_usage($product->get_id(), $product->get_id());
+                if (!empty($used_in)) {
+                    $products_in_bundles[] = $product;
+                } else {
+                    $other_products[] = $product;
+                }
+            }
+        }
+
+        // Sort products in bundles: variable products first, then simple
+        usort($products_in_bundles, function($a, $b) {
+            $a_is_variable = $a->is_type('variable') ? 0 : 1;
+            $b_is_variable = $b->is_type('variable') ? 0 : 1;
+            return $a_is_variable - $b_is_variable;
+        });
+
+        // 1. RENDER BUNDLES SECTION
+        if (!empty($bundles)) {
+            $this->render_section_header(__('Bundles', 'advanced-bundle-system'), 'bundles');
+            foreach ($bundles as $product) {
                 $this->render_product_row($product);
             }
         }
+
+        // 2. RENDER PRODUCTS IN BUNDLES SECTION
+        if (!empty($products_in_bundles)) {
+            $this->render_section_header(__('Products Used in Bundles', 'advanced-bundle-system'), 'in-bundles');
+            foreach ($products_in_bundles as $product) {
+                if ($product->is_type('variable')) {
+                    $this->render_parent_product_row($product);
+                    $variation_ids = $product->get_children();
+                    foreach ($variation_ids as $variation_id) {
+                        $variation = wc_get_product($variation_id);
+                        if ($variation && $variation->is_type('variation')) {
+                            $this->render_variation_row($product, $variation);
+                        }
+                    }
+                } else {
+                    $this->render_product_row($product);
+                }
+            }
+        }
+
+        // 3. RENDER OTHER PRODUCTS SECTION
+        if (!empty($other_products)) {
+            $this->render_section_header(__('Other Products', 'advanced-bundle-system'), 'other');
+            foreach ($other_products as $product) {
+                if ($product->is_type('variable')) {
+                    $this->render_parent_product_row($product);
+                    $variation_ids = $product->get_children();
+                    foreach ($variation_ids as $variation_id) {
+                        $variation = wc_get_product($variation_id);
+                        if ($variation && $variation->is_type('variation')) {
+                            $this->render_variation_row($product, $variation);
+                        }
+                    }
+                } else {
+                    $this->render_product_row($product);
+                }
+            }
+        }
+    }
+
+    /**
+     * Render section header for inventory groups
+     */
+    private function render_section_header($title, $section_class) {
+        ?>
+        <tr class="abs-section-header abs-section-<?php echo esc_attr($section_class); ?>">
+            <td colspan="5">
+                <strong><?php echo esc_html($title); ?></strong>
+            </td>
+        </tr>
+        <?php
     }
 
     /**
