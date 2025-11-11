@@ -266,6 +266,37 @@
     font-style: italic;
 }
 
+/* Parent product row (variable products) */
+.abs-parent-row {
+    background: #f0f8ff !important;
+    border-left: 4px solid #2196f3;
+}
+
+.abs-parent-row td {
+    font-weight: 600;
+}
+
+.abs-parent-row .abs-product-type {
+    color: #666;
+    font-weight: normal;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+/* Variation rows (indented under parent) */
+.abs-variation-row {
+    background: #fafafa;
+}
+
+.abs-variation-indent {
+    padding-left: 32px !important;
+    color: #555;
+}
+
+.abs-variation-row td {
+    border-left: 4px solid transparent;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .abs-inventory-filters {
@@ -293,5 +324,9 @@
 
     .abs-stock-input {
         width: 60px;
+    }
+
+    .abs-variation-indent {
+        padding-left: 20px !important;
     }
 }

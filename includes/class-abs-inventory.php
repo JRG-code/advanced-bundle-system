@@ -124,11 +124,15 @@ class ABS_Inventory {
             if (!$product) continue;
 
             if ($product->is_type('variable')) {
+                // Render parent product header row
+                $this->render_parent_product_row($product);
+
+                // Render variation rows (indented)
                 $variations = $product->get_available_variations();
                 foreach ($variations as $variation_data) {
                     $variation = wc_get_product($variation_data['variation_id']);
                     if ($variation) {
-                        $this->render_product_row($product, $variation, $variation_data);
+                        $this->render_variation_row($product, $variation, $variation_data);
                     }
                 }
             } else {
@@ -137,15 +141,54 @@ class ABS_Inventory {
         }
     }
 
-    private function render_product_row($product, $variation = null, $variation_data = null) {
-        $is_variation = !is_null($variation);
-        $item = $is_variation ? $variation : $product;
+    /**
+     * Render parent product header row (for variable products)
+     */
+    private function render_parent_product_row($product) {
         $product_id = $product->get_id();
-        $item_id = $item->get_id();
+        $used_in = $this->get_product_usage($product_id, $product_id);
+        ?>
+        <tr class="abs-inventory-row abs-parent-row" data-product-id="<?php echo esc_attr($product_id); ?>">
+            <td class="abs-col-product" colspan="2">
+                <strong>📦 <?php echo esc_html($product->get_name()); ?></strong>
+                <span class="abs-product-type">(<?php _e('Variable Product', 'advanced-bundle-system'); ?>)</span>
+                <div class="row-actions">
+                    <span><a href="<?php echo get_edit_post_link($product_id); ?>" target="_blank"><?php _e('Edit Product', 'advanced-bundle-system'); ?></a></span>
+                </div>
+            </td>
+            <td class="abs-col-sku">—</td>
+            <td class="abs-col-stock">
+                <em><?php _e('See variations below', 'advanced-bundle-system'); ?></em>
+            </td>
+            <td class="abs-col-used">
+                <?php if (!empty($used_in)): ?>
+                    <ul class="abs-used-in-list">
+                        <?php foreach ($used_in as $usage): ?>
+                            <li>
+                                <a href="<?php echo get_edit_post_link($usage['id']); ?>" target="_blank">
+                                    <?php echo esc_html($usage['title']); ?>
+                                </a>
+                                <span class="abs-usage-type">(<?php echo esc_html($usage['type']); ?>)</span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <em><?php _e('Not used in bundles', 'advanced-bundle-system'); ?></em>
+                <?php endif; ?>
+            </td>
+        </tr>
+        <?php
+    }
 
-        $managing_stock = $item->managing_stock();
-        $stock_quantity = $managing_stock ? $item->get_stock_quantity() : '';
-        $stock_status = $item->get_stock_status();
+    /**
+     * Render variation row (indented under parent)
+     */
+    private function render_variation_row($product, $variation, $variation_data) {
+        $item_id = $variation->get_id();
+
+        $managing_stock = $variation->managing_stock();
+        $stock_quantity = $managing_stock ? $variation->get_stock_quantity() : '';
+        $stock_status = $variation->get_stock_status();
 
         $stock_class = 'abs-in-stock';
         if ($stock_status === 'outofstock' || ($managing_stock && $stock_quantity <= 0)) {
@@ -155,28 +198,76 @@ class ABS_Inventory {
         }
 
         $variation_name = '';
-        if ($is_variation && $variation_data) {
+        if ($variation_data) {
             $attributes = array();
             foreach ($variation_data['attributes'] as $attr_name => $attr_value) {
-                $attributes[] = ucfirst(str_replace('attribute_pa_', '', $attr_name)) . ': ' . ucfirst($attr_value);
+                $attr_label = wc_attribute_label(str_replace('attribute_', '', $attr_name));
+                $attributes[] = ucfirst($attr_value);
             }
-            $variation_name = implode(', ', $attributes);
+            $variation_name = $product->get_name() . ' - ' . implode(', ', $attributes);
+        }
+        ?>
+        <tr class="abs-inventory-row abs-variation-row <?php echo esc_attr($stock_class); ?>" data-product-id="<?php echo esc_attr($item_id); ?>">
+            <td class="abs-col-product abs-variation-indent">
+                ↳ <?php echo esc_html($variation_name); ?>
+            </td>
+            <td class="abs-col-variation">
+                <?php
+                $attrs = array();
+                foreach ($variation_data['attributes'] as $attr_name => $attr_value) {
+                    $attr_label = wc_attribute_label(str_replace('attribute_', '', $attr_name));
+                    $attrs[] = $attr_label . ': ' . ucfirst($attr_value);
+                }
+                echo esc_html(implode(', ', $attrs));
+                ?>
+            </td>
+            <td class="abs-col-sku">
+                <?php echo $variation->get_sku() ? esc_html($variation->get_sku()) : '—'; ?>
+            </td>
+            <td class="abs-col-stock">
+                <span class="abs-stock-status <?php echo esc_attr($stock_class); ?>">●</span>
+                <?php if ($managing_stock): ?>
+                    <input type="number" class="abs-stock-input" value="<?php echo esc_attr($stock_quantity); ?>" min="0" step="1" data-original="<?php echo esc_attr($stock_quantity); ?>" />
+                    <button class="button abs-save-stock" style="display:none;"><?php _e('Save', 'advanced-bundle-system'); ?></button>
+                    <span class="abs-save-feedback"></span>
+                <?php else: ?>
+                    <em><?php _e('Not managed', 'advanced-bundle-system'); ?></em>
+                <?php endif; ?>
+            </td>
+            <td class="abs-col-used">—</td>
+        </tr>
+        <?php
+    }
+
+    /**
+     * Render simple product row
+     */
+    private function render_product_row($product) {
+        $product_id = $product->get_id();
+
+        $managing_stock = $product->managing_stock();
+        $stock_quantity = $managing_stock ? $product->get_stock_quantity() : '';
+        $stock_status = $product->get_stock_status();
+
+        $stock_class = 'abs-in-stock';
+        if ($stock_status === 'outofstock' || ($managing_stock && $stock_quantity <= 0)) {
+            $stock_class = 'abs-out-of-stock';
+        } elseif ($managing_stock && $stock_quantity <= 5) {
+            $stock_class = 'abs-low-stock';
         }
 
-        $used_in = $this->get_product_usage($item_id, $product_id);
+        $used_in = $this->get_product_usage($product_id, $product_id);
         ?>
-        <tr class="abs-inventory-row <?php echo esc_attr($stock_class); ?>" data-product-id="<?php echo esc_attr($item_id); ?>">
+        <tr class="abs-inventory-row <?php echo esc_attr($stock_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>">
             <td class="abs-col-product">
                 <strong><?php echo esc_html($product->get_name()); ?></strong>
                 <div class="row-actions">
                     <span><a href="<?php echo get_edit_post_link($product_id); ?>" target="_blank"><?php _e('Edit Product', 'advanced-bundle-system'); ?></a></span>
                 </div>
             </td>
-            <td class="abs-col-variation">
-                <?php echo $variation_name ? esc_html($variation_name) : '—'; ?>
-            </td>
+            <td class="abs-col-variation">—</td>
             <td class="abs-col-sku">
-                <?php echo $item->get_sku() ? esc_html($item->get_sku()) : '—'; ?>
+                <?php echo $product->get_sku() ? esc_html($product->get_sku()) : '—'; ?>
             </td>
             <td class="abs-col-stock">
                 <span class="abs-stock-status <?php echo esc_attr($stock_class); ?>">●</span>
