@@ -273,7 +273,26 @@ class ABS_Inventory {
                     <em><?php _e('Not managed', 'advanced-bundle-system'); ?></em>
                 <?php endif; ?>
             </td>
-            <td class="abs-col-used">—</td>
+            <td class="abs-col-used">
+                <?php
+                // Get "Used In" from parent product (variations inherit from parent)
+                $used_in = $this->get_product_usage($item_id, $product->get_id());
+                if (!empty($used_in)):
+                ?>
+                    <ul class="abs-used-in-list">
+                        <?php foreach ($used_in as $usage): ?>
+                            <li>
+                                <a href="<?php echo get_edit_post_link($usage['id']); ?>" target="_blank">
+                                    <?php echo esc_html($usage['title']); ?>
+                                </a>
+                                <span class="abs-usage-type">(<?php echo esc_html($usage['type']); ?>)</span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <em><?php _e('Not used in bundles', 'advanced-bundle-system'); ?></em>
+                <?php endif; ?>
+            </td>
         </tr>
         <?php
     }
