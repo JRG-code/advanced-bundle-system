@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashicons Debugger</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #00ff00;
+        }
+        .section {
+            background: #000;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #00ff00;
+        }
+        .error { color: #ff0000; }
+        .warning { color: #ffcc00; }
+        .ok { color: #00ff00; }
+        pre {
+            background: #111;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00cc00;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Dashicons CSS Conflict Debugger</h1>
+
+    <div class="section">
+        <h2>Instructions:</h2>
+        <p>1. Upload this file to: <code>/wp-content/plugins/advanced-bundle-system/dashicons-debug.html</code></p>
+        <p>2. Access via: <code>https://yoursite.com/wp-content/plugins/advanced-bundle-system/dashicons-debug.html</code></p>
+        <p>3. Open browser DevTools (F12) and paste the script below in Console</p>
+        <p>4. Copy all the output and send to me</p>
+    </div>
+
+    <div class="section">
+        <h2>📋 Copy This Script to Browser Console:</h2>
+        <button onclick="copyScript()">📋 Copy Script</button>
+        <pre id="script">
+// ============================================
+// DASHICONS CONFLICT DEBUGGER
+// ============================================
+
+console.log('=== DASHICONS CONFLICT DEBUGGER ===\n');
+
+// 1. Check all loaded stylesheets
+console.log('1️⃣ LOADED STYLESHEETS:');
+console.log('━'.repeat(50));
+const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
+stylesheets.forEach((link, index) => {
+    const href = link.href;
+    const isPlugin = href.includes('/plugins/');
+    const isTheme = href.includes('/themes/');
+
+    console.log(`${index + 1}. ${isPlugin ? '🔌 PLUGIN' : isTheme ? '🎨 THEME' : '📄 OTHER'}`);
+    console.log(`   URL: ${href}`);
+});
+console.log('\n');
+
+// 2. Find all CSS rules affecting dashicons
+console.log('2️⃣ CSS RULES AFFECTING DASHICONS:');
+console.log('━'.repeat(50));
+const dashiconRules = [];
+for (let sheet of document.styleSheets) {
+    try {
+        const rules = sheet.cssRules || sheet.rules;
+        for (let rule of rules) {
+            if (rule.cssText &&
+                (rule.selectorText?.includes('dashicon') ||
+                 rule.cssText.includes('dashicon') ||
+                 rule.cssText.includes('\\f') ||
+                 rule.selectorText?.includes('.product-type-bundle'))) {
+                dashiconRules.push({
+                    sheet: sheet.href || 'inline',
+                    selector: rule.selectorText,
+                    css: rule.cssText
+                });
+            }
+        }
+    } catch (e) {
+        // CORS or other access issues
+    }
+}
+
+if (dashiconRules.length === 0) {
+    console.log('✅ No suspicious dashicon rules found');
+} else {
+    console.log(`⚠️ Found ${dashiconRules.length} rules affecting dashicons:`);
+    dashiconRules.forEach((rule, index) => {
+        console.log(`\n${index + 1}. FROM: ${rule.sheet}`);
+        console.log(`   SELECTOR: ${rule.selector}`);
+        console.log(`   RULE: ${rule.css}`);
+    });
+}
+console.log('\n');
+
+// 3. Check computed styles on menu icons
+console.log('3️⃣ MENU ICONS COMPUTED STYLES:');
+console.log('━'.repeat(50));
+const menuIcons = document.querySelectorAll('#adminmenu .dashicons');
+console.log(`Found ${menuIcons.length} menu icons`);
+
+if (menuIcons.length > 0) {
+    const firstIcon = menuIcons[0];
+    const styles = window.getComputedStyle(firstIcon, ':before');
+    console.log('\nFirst menu icon (:before pseudo-element):');
+    console.log(`   content: ${styles.content}`);
+    console.log(`   font-family: ${styles.fontFamily}`);
+    console.log(`   Expected: "dashicons"`);
+
+    if (styles.fontFamily !== 'dashicons' && !styles.fontFamily.includes('dashicons')) {
+        console.log('   ⚠️ WARNING: Font-family is not dashicons!');
+    }
+}
+console.log('\n');
+
+// 4. Check body classes that might trigger rules
+console.log('4️⃣ BODY CLASSES:');
+console.log('━'.repeat(50));
+const bodyClasses = document.body.className.split(' ');
+console.log('Body classes that might affect styling:');
+bodyClasses.forEach(cls => {
+    if (cls.includes('bundle') || cls.includes('product')) {
+        console.log(`   🔍 ${cls}`);
+    }
+});
+console.log('\n');
+
+// 5. Check for JavaScript that modifies icons
+console.log('5️⃣ CHECKING FOR JS MODIFICATIONS:');
+console.log('━'.repeat(50));
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.target.classList?.contains('dashicons')) {
+            console.log('⚠️ DASHICON MODIFIED BY JAVASCRIPT!');
+            console.log('   Element:', mutation.target);
+            console.log('   Type:', mutation.type);
+            console.log('   Stack trace:');
+            console.trace();
+        }
+    });
+});
+
+// Observe for 5 seconds
+const icons = document.querySelectorAll('.dashicons');
+icons.forEach(icon => observer.observe(icon, {
+    attributes: true,
+    attributeOldValue: true
+}));
+
+console.log('Watching for icon changes for 5 seconds...');
+setTimeout(() => {
+    observer.disconnect();
+    console.log('✅ Observation complete\n');
+}, 5000);
+
+// 6. Check active plugins
+console.log('6️⃣ ACTIVE PLUGINS (from stylesheets):');
+console.log('━'.repeat(50));
+const plugins = new Set();
+stylesheets.forEach(link => {
+    const match = link.href.match(/\/plugins\/([^\/]+)\//);
+    if (match) {
+        plugins.add(match[1]);
+    }
+});
+plugins.forEach(plugin => console.log(`   🔌 ${plugin}`));
+console.log('\n');
+
+// 7. Specific check for our plugin
+console.log('7️⃣ ADVANCED BUNDLE SYSTEM CHECK:');
+console.log('━'.repeat(50));
+const absCSS = Array.from(stylesheets).find(s => s.href.includes('advanced-bundle-system'));
+if (absCSS) {
+    console.log('✅ Plugin CSS loaded:', absCSS.href);
+} else {
+    console.log('❌ Plugin CSS not found');
+}
+
+console.log('\n=== END OF REPORT ===');
+console.log('📋 Copy all the output above and send it for analysis');
+        </pre>
+    </div>
+
+    <div class="section">
+        <h2>Alternative: Quick Plugin Test</h2>
+        <p>To identify which plugin is causing the issue:</p>
+        <ol>
+            <li>Go to WordPress → Plugins</li>
+            <li>Deactivate <strong>Advanced Bundle System</strong></li>
+            <li>Check if icons are still broken</li>
+            <li><strong>If YES:</strong> It's another plugin! Start deactivating others one by one</li>
+            <li><strong>If NO:</strong> It's our plugin, and we need to investigate more</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>Common Culprits:</h2>
+        <ul>
+            <li>🔌 WooCommerce extensions that modify admin UI</li>
+            <li>🎨 Admin theme/UI customization plugins</li>
+            <li>⚡ Page builder plugins</li>
+            <li>📊 Dashboard/analytics plugins</li>
+            <li>🎯 Menu management plugins</li>
+        </ul>
+    </div>
+
+    <script>
+        function copyScript() {
+            const script = document.getElementById('script').textContent;
+            navigator.clipboard.writeText(script).then(() => {
+                alert('✅ Script copied! Now:\n1. Open browser Console (F12)\n2. Paste and press Enter\n3. Wait 5 seconds\n4. Copy all output');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -167,10 +167,10 @@ body.post-type-product .show_if_bundle {
 }
 
 /* Keep Inventory tab visible but hide stock quantity management for bundles */
-body.post-type-product.product-type-bundle ._manage_stock_field,
-body.post-type-product.product-type-bundle ._stock_field,
-body.post-type-product.product-type-bundle ._backorders_field,
-body.post-type-product.product-type-bundle ._low_stock_amount_field {
+body.post-type-product.abs-editing-bundle-product ._manage_stock_field,
+body.post-type-product.abs-editing-bundle-product ._stock_field,
+body.post-type-product.abs-editing-bundle-product ._backorders_field,
+body.post-type-product.abs-editing-bundle-product ._low_stock_amount_field {
     display: none !important;
 }
 
