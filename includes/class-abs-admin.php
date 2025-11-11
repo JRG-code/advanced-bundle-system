@@ -51,27 +51,32 @@ class ABS_Admin {
         $term = isset($_GET['term']) ? sanitize_text_field($_GET['term']) : '';
         $exclude_id = isset($_GET['exclude_id']) ? intval($_GET['exclude_id']) : 0;
 
+        // Use wc_get_products() for better performance
         $args = array(
-            'post_type' => 'product',
-            'posts_per_page' => 20,
-            's' => $term,
-            'post_status' => 'publish'
+            'limit' => 20,
+            'status' => 'publish',
+            'return' => 'objects',
         );
 
-        if ($exclude_id > 0) {
-            $args['post__not_in'] = array($exclude_id);
+        // Add search parameter if term is provided
+        if (!empty($term)) {
+            $args['s'] = $term;
         }
 
-        $products = get_posts($args);
+        // Exclude the current product being edited
+        if ($exclude_id > 0) {
+            $args['exclude'] = array($exclude_id);
+        }
+
+        $products = wc_get_products($args);
         $results = array();
 
-        foreach ($products as $product) {
-            $product_obj = wc_get_product($product->ID);
-            // Exclude bundle products and the current product being edited
-            if ($product_obj && $product_obj->get_type() !== 'bundle' && $product->ID !== $exclude_id) {
+        foreach ($products as $product_obj) {
+            // Exclude bundle products
+            if ($product_obj && $product_obj->get_type() !== 'bundle') {
                 $results[] = array(
-                    'id' => $product->ID,
-                    'text' => $product->post_title . ' (#' . $product->ID . ') - ' . wc_price($product_obj->get_price())
+                    'id' => $product_obj->get_id(),
+                    'text' => $product_obj->get_name() . ' (#' . $product_obj->get_id() . ') - ' . wc_price($product_obj->get_price())
                 );
             }
         }

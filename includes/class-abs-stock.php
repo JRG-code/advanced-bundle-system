@@ -77,16 +77,17 @@ class ABS_Stock {
     }
 
     /**
-     * Check if a variable product has at least one variation in stock
+     * Check if a variable product has at least one variation in stock (optimized)
      */
     private function has_in_stock_variation($product) {
         if (!$product->is_type('variable')) {
             return false;
         }
 
-        $variations = $product->get_available_variations();
-        foreach ($variations as $variation) {
-            $variation_obj = wc_get_product($variation['variation_id']);
+        // Use get_children() instead of get_available_variations() for better performance
+        $variation_ids = $product->get_children();
+        foreach ($variation_ids as $variation_id) {
+            $variation_obj = wc_get_product($variation_id);
             if ($variation_obj && $variation_obj->is_in_stock()) {
                 return true;
             }

@@ -12,6 +12,7 @@ if (!defined('ABSPATH')) {
 class ABS_Inventory {
 
     private static $instance = null;
+    private $bundles_cache = null; // Cache for bundle lookups
 
     public static function get_instance() {
         if (null === self::$instance) {
@@ -112,16 +113,17 @@ class ABS_Inventory {
     }
 
     private function render_inventory_rows() {
-        $args = array(
-            'post_type' => 'product',
-            'posts_per_page' => -1,
-            'post_status' => 'publish',
-        );
+        // Pre-load all bundles once to avoid N+1 queries
+        $this->preload_bundles_cache();
 
-        $products = get_posts($args);
+        // Use wc_get_products() instead of get_posts() for better performance
+        $products = wc_get_products(array(
+            'limit' => -1,
+            'status' => 'publish',
+            'return' => 'objects',
+        ));
 
-        foreach ($products as $product_post) {
-            $product = wc_get_product($product_post->ID);
+        foreach ($products as $product) {
             if (!$product) continue;
 
             if ($product->is_type('variable')) {
@@ -129,15 +131,53 @@ class ABS_Inventory {
                 $this->render_parent_product_row($product);
 
                 // Render variation rows (indented)
-                $variations = $product->get_available_variations();
-                foreach ($variations as $variation_data) {
-                    $variation = wc_get_product($variation_data['variation_id']);
-                    if ($variation) {
-                        $this->render_variation_row($product, $variation, $variation_data);
+                // Use get_children() instead of get_available_variations() for better performance
+                $variation_ids = $product->get_children();
+                foreach ($variation_ids as $variation_id) {
+                    $variation = wc_get_product($variation_id);
+                    if ($variation && $variation->is_type('variation')) {
+                        $this->render_variation_row($product, $variation);
                     }
                 }
             } else {
                 $this->render_product_row($product);
+            }
+        }
+    }
+
+    /**
+     * Pre-load all bundles to avoid N+1 queries
+     */
+    private function preload_bundles_cache() {
+        if ($this->bundles_cache !== null) {
+            return; // Already loaded
+        }
+
+        $this->bundles_cache = array();
+
+        // Get all bundle products at once
+        $bundles = wc_get_products(array(
+            'type' => 'bundle',
+            'limit' => -1,
+            'return' => 'objects',
+        ));
+
+        foreach ($bundles as $bundle) {
+            $bundle_items = get_post_meta($bundle->get_id(), '_bundle_items', true);
+            if (is_array($bundle_items)) {
+                foreach ($bundle_items as $item) {
+                    if (isset($item['product_id'])) {
+                        $product_id = (int)$item['product_id'];
+                        if (!isset($this->bundles_cache[$product_id])) {
+                            $this->bundles_cache[$product_id] = array();
+                        }
+                        $this->bundles_cache[$product_id][] = array(
+                            'id' => $bundle->get_id(),
+                            'title' => $bundle->get_name(),
+                            'type' => 'Bundle',
+                        );
+                    }
+                }
             }
         }
     }
@@ -184,7 +224,7 @@ class ABS_Inventory {
     /**
      * Render variation row (indented under parent)
      */
-    private function render_variation_row($product, $variation, $variation_data) {
+    private function render_variation_row($product, $variation) {
         $item_id = $variation->get_id();
 
         $managing_stock = $variation->managing_stock();
@@ -198,29 +238,25 @@ class ABS_Inventory {
             $stock_class = 'abs-low-stock';
         }
 
-        $variation_name = '';
-        if ($variation_data) {
-            $attributes = array();
-            foreach ($variation_data['attributes'] as $attr_name => $attr_value) {
-                $attr_label = wc_attribute_label(str_replace('attribute_', '', $attr_name));
-                $attributes[] = ucfirst($attr_value);
-            }
-            $variation_name = $product->get_name() . ' - ' . implode(', ', $attributes);
+        // Get variation attributes directly from the variation object
+        $attributes_display = array();
+        $attributes_short = array();
+        $variation_attributes = $variation->get_attributes();
+
+        foreach ($variation_attributes as $attr_name => $attr_value) {
+            $attr_label = wc_attribute_label($attr_name);
+            $attributes_display[] = $attr_label . ': ' . ucfirst($attr_value);
+            $attributes_short[] = ucfirst($attr_value);
         }
+
+        $variation_name = $product->get_name() . ' - ' . implode(', ', $attributes_short);
         ?>
         <tr class="abs-inventory-row abs-variation-row <?php echo esc_attr($stock_class); ?>" data-product-id="<?php echo esc_attr($item_id); ?>">
             <td class="abs-col-product abs-variation-indent">
                 ↳ <?php echo esc_html($variation_name); ?>
             </td>
             <td class="abs-col-variation">
-                <?php
-                $attrs = array();
-                foreach ($variation_data['attributes'] as $attr_name => $attr_value) {
-                    $attr_label = wc_attribute_label(str_replace('attribute_', '', $attr_name));
-                    $attrs[] = $attr_label . ': ' . ucfirst($attr_value);
-                }
-                echo esc_html(implode(', ', $attrs));
-                ?>
+                <?php echo esc_html(implode(', ', $attributes_display)); ?>
             </td>
             <td class="abs-col-sku">
                 <input type="text" class="abs-sku-input" value="<?php echo esc_attr($variation->get_sku()); ?>" placeholder="<?php _e('No SKU', 'advanced-bundle-system'); ?>" data-original="<?php echo esc_attr($variation->get_sku()); ?>" />
@@ -304,37 +340,15 @@ class ABS_Inventory {
         <?php
     }
 
+    /**
+     * Get product usage from cache (optimized - no queries)
+     */
     private function get_product_usage($item_id, $product_id) {
-        $used_in = array();
-        $bundle_args = array(
-            'post_type' => 'product',
-            'posts_per_page' => -1,
-            'post_status' => 'publish',
-            'meta_query' => array(
-                array(
-                    'key' => '_product_type',
-                    'value' => 'bundle',
-                ),
-            ),
-        );
-
-        $bundles = get_posts($bundle_args);
-        foreach ($bundles as $bundle_post) {
-            $bundle_items = get_post_meta($bundle_post->ID, '_bundle_items', true);
-            if (is_array($bundle_items)) {
-                foreach ($bundle_items as $item) {
-                    if (isset($item['product_id']) && (int)$item['product_id'] === (int)$product_id) {
-                        $used_in[] = array(
-                            'id' => $bundle_post->ID,
-                            'title' => get_the_title($bundle_post->ID),
-                            'type' => 'Bundle',
-                        );
-                        break;
-                    }
-                }
-            }
+        // Use the pre-loaded bundles cache
+        if (isset($this->bundles_cache[$product_id])) {
+            return $this->bundles_cache[$product_id];
         }
-        return $used_in;
+        return array();
     }
 
     public function ajax_update_stock() {
