@@ -3,7 +3,7 @@
  * Plugin Name: Advanced Bundle System
  * Plugin URI: https://github.com/JRG-code/advanced-bundle-system
  * Description: Advanced bundle system for WooCommerce with personalization features including real-time preview overlay
- * Version: 1.3.0
+ * Version: 1.3.5
  * Author: JRG Code
  * Author URI: https://github.com/JRG-code
  * Text Domain: advanced-bundle-system
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('ABS_VERSION', '1.3.0');
+define('ABS_VERSION', '1.3.5');
 define('ABS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ABS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('ABS_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -164,16 +164,21 @@ class Advanced_Bundle_System {
     }
 
     /**
-     * Enqueue frontend assets
+     * Enqueue frontend assets (optimized - only on relevant pages)
      */
     public function enqueue_frontend_assets() {
         if (!function_exists('is_product') || !function_exists('is_cart') || !function_exists('is_checkout')) {
             return;
         }
 
+        // Only load on product, cart, and checkout pages
         if (is_product() || is_cart() || is_checkout()) {
             wp_enqueue_style('abs-frontend', ABS_PLUGIN_URL . 'assets/css/frontend.css', array(), ABS_VERSION);
-            wp_enqueue_script('abs-frontend', ABS_PLUGIN_URL . 'assets/js/frontend.js', array('jquery'), ABS_VERSION, true);
+
+            // Register script with defer attribute for better performance
+            wp_register_script('abs-frontend', ABS_PLUGIN_URL . 'assets/js/frontend.js', array('jquery'), ABS_VERSION, true);
+            wp_script_add_data('abs-frontend', 'defer', true);
+            wp_enqueue_script('abs-frontend');
 
             wp_localize_script('abs-frontend', 'absData', array(
                 'ajaxUrl' => admin_url('admin-ajax.php'),

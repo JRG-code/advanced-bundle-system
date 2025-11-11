@@ -301,11 +301,17 @@ class ABS_Settings {
     }
 
     /**
-     * Get a setting value
+     * Get a setting value (with static cache for performance)
      */
     public static function get_setting($key, $default = '') {
-        $settings = get_option('abs_settings', array());
-        return isset($settings[$key]) ? $settings[$key] : $default;
+        static $settings_cache = null;
+
+        // Load settings once and cache in memory
+        if ($settings_cache === null) {
+            $settings_cache = get_option('abs_settings', array());
+        }
+
+        return isset($settings_cache[$key]) ? $settings_cache[$key] : $default;
     }
 }
 

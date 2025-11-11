@@ -44,11 +44,49 @@
                 self.saveStock(productId, stockQuantity, $btn, $input, $feedback, $row);
             });
 
-            // Enter key to save
+            // Enter key to save stock
             $(document).on('keypress', '.abs-stock-input', function(e) {
                 if (e.which === 13) {
                     e.preventDefault();
                     $(this).closest('tr').find('.abs-save-stock').click();
+                }
+            });
+
+            // SKU input change detection
+            $(document).on('input', '.abs-sku-input', function() {
+                var $input = $(this);
+                var $row = $input.closest('tr');
+                var $saveBtn = $row.find('.abs-save-sku');
+                var original = $input.data('original');
+                var current = $input.val();
+
+                if (current != original) {
+                    $input.addClass('abs-modified');
+                    $saveBtn.show();
+                } else {
+                    $input.removeClass('abs-modified');
+                    $saveBtn.hide();
+                }
+            });
+
+            // Save SKU button
+            $(document).on('click', '.abs-save-sku', function(e) {
+                e.preventDefault();
+                var $btn = $(this);
+                var $row = $btn.closest('tr');
+                var $input = $row.find('.abs-sku-input');
+                var $feedback = $row.find('.abs-sku-feedback');
+                var productId = $row.data('product-id');
+                var sku = $input.val();
+
+                self.saveSku(productId, sku, $btn, $input, $feedback);
+            });
+
+            // Enter key to save SKU
+            $(document).on('keypress', '.abs-sku-input', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $(this).closest('tr').find('.abs-save-sku').click();
                 }
             });
 
@@ -120,6 +158,56 @@
                 error: function() {
                     $feedback.text(absInventory.strings.error).removeClass('abs-saving abs-saved').addClass('abs-error');
                     $btn.prop('disabled', false).text('Save');
+                }
+            });
+        },
+
+        saveSku: function(productId, sku, $btn, $input, $feedback) {
+            // Show saving state
+            $btn.prop('disabled', true).text(absInventory.strings.saving);
+            $feedback.text(absInventory.strings.saving).removeClass('abs-saved abs-error').addClass('abs-saving');
+
+            $.ajax({
+                url: absInventory.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'abs_update_sku',
+                    nonce: absInventory.nonce,
+                    product_id: productId,
+                    sku: sku
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Success!
+                        $feedback.text(absInventory.strings.saved).removeClass('abs-saving abs-error').addClass('abs-saved');
+                        $input.removeClass('abs-modified').data('original', sku);
+                        $btn.hide();
+
+                        // Clear feedback after 3 seconds
+                        setTimeout(function() {
+                            $feedback.text('').removeClass('abs-saved');
+                        }, 3000);
+                    } else {
+                        // Error - show the error message from server
+                        var errorMsg = response.data && response.data.message ? response.data.message : absInventory.strings.error;
+                        $feedback.text(errorMsg).removeClass('abs-saving abs-saved').addClass('abs-error');
+
+                        // Clear error after 5 seconds
+                        setTimeout(function() {
+                            $feedback.text('').removeClass('abs-error');
+                        }, 5000);
+                    }
+
+                    $btn.prop('disabled', false).text('Save');
+                },
+                error: function() {
+                    $feedback.text(absInventory.strings.error).removeClass('abs-saving abs-saved').addClass('abs-error');
+                    $btn.prop('disabled', false).text('Save');
+
+                    // Clear error after 5 seconds
+                    setTimeout(function() {
+                        $feedback.text('').removeClass('abs-error');
+                    }, 5000);
                 }
             });
         },
