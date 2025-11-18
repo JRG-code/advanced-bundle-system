@@ -11,6 +11,7 @@ class ABS_Frontend {
 
     public function __construct() {
         add_action('woocommerce_before_add_to_cart_button', array($this, 'display_bundle_products'));
+        add_action('woocommerce_before_add_to_cart_button', array($this, 'display_general_personalization'), 20);
         add_filter('woocommerce_get_price_html', array($this, 'display_bundle_pricing'), 10, 2);
     }
 
@@ -191,6 +192,46 @@ class ABS_Frontend {
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Display personalization fields for non-bundle products (simple, variable, grouped, external)
+     */
+    public function display_general_personalization() {
+        global $product;
+
+        // Only display for non-bundle product types
+        if (!$product || $product->get_type() === 'bundle') {
+            return;
+        }
+
+        // Check if personalization is enabled for this product
+        $enable_personalization = get_post_meta($product->get_id(), '_enable_personalization', true);
+        if ($enable_personalization !== 'yes') {
+            return;
+        }
+
+        // Get personalization settings
+        $personalization_label = get_post_meta($product->get_id(), '_personalization_label', true);
+        if (empty($personalization_label)) {
+            $personalization_label = __('Enter text:', 'advanced-bundle-system');
+        }
+
+        $max_characters = get_post_meta($product->get_id(), '_max_characters', true);
+        if (empty($max_characters)) {
+            $max_characters = 50;
+        }
+
+        // Display personalization heading
+        $personalization_heading = ABS_Settings::get_setting('personalization_heading', __('Personalization Options:', 'advanced-bundle-system'));
+
+        echo '<div class="abs-general-personalization">';
+        echo '<h3>' . esc_html($personalization_heading) . '</h3>';
+
+        // Use unique_id 0 for non-bundle products (they only have one personalization field)
+        $this->display_personalization_fields($product->get_id(), 0, $personalization_label, $max_characters);
+
+        echo '</div>';
     }
 
     /**

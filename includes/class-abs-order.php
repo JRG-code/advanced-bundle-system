@@ -105,7 +105,8 @@ class ABS_Order {
 
         foreach ($meta_data as $meta) {
             $key = $meta->key;
-            if (strpos($key, 'Personalization for') !== false) {
+            // Check for both "Personalization" and "Personalization for" keys
+            if ($key === __('Personalization', 'advanced-bundle-system') || strpos($key, 'Personalization for') !== false) {
                 if ($has_personalization) {
                     echo '<br>';
                 }

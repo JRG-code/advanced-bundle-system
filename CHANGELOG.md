@@ -2,6 +2,53 @@
 
 All notable changes to the Advanced Bundle System plugin will be documented in this file.
 
+## [1.3.6] - 2025-11-18
+
+### Added
+- Personalization system for variable products (add custom text like "initials on sleeves")
+- Personalization system for simple products
+- Personalization system for grouped products
+- Personalization system for external/affiliate products
+- New personalization fields in "General" tab for non-bundle product types
+- New setting: "Personalization Section Heading" for non-bundle products
+- Frontend display of personalization fields for all product types
+- Cart and order support for personalization on all product types
+
+### Changed
+- Extended personalization functionality from bundles-only to all WooCommerce product types
+- Updated order display to properly show personalization for all product types
+
+## [1.3.5] - 2025-11-18
+
+### Changed
+- Reorganized Inventory Manager by hierarchy: Bundles → Products in Bundles → Others
+
+## [1.3.4] - 2025-11-18
+
+### Fixed
+- Show 'Used In' bundles for product variations in Inventory Manager
+
+## [1.3.3] - 2025-11-18
+
+### Changed
+- Performance optimization - Make plugin faster with improved query efficiency
+
+## [1.3.2] - 2025-11-18
+
+### Added
+- Inline SKU editing to Inventory Manager for quick updates
+
+## [1.3.1] - 2025-11-18
+
+### Added
+- Grouped variable products display in Inventory Manager
+
+## [1.3.0] - 2025-11-18
+
+### Added
+- Centralized Inventory Manager for managing all bundle products and inventory
+- New admin interface for inventory management
+
 ## [1.0.0] - 2025-11-04
 
 ### Added
