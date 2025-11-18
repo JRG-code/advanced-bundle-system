@@ -375,6 +375,57 @@
     font-size: 14px;
 }
 
+/* Checkout Display */
+.abs-checkout-personalization {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f0f8ff;
+    border-left: 3px solid #4caf50;
+    border-radius: 0 4px 4px 0;
+}
+
+.abs-checkout-personalization .abs-personalization-item {
+    margin: 2px 0;
+}
+
+.abs-checkout-personalization small {
+    display: block;
+    color: #333;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.abs-checkout-personalization strong {
+    color: #4caf50;
+    font-weight: 600;
+}
+
+/* General Personalization (for non-bundle products) */
+.abs-general-personalization {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+.abs-general-personalization h3 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* CartFlows specific styles */
+.cartflows-checkout .abs-checkout-personalization {
+    margin-top: 5px;
+    background: rgba(76, 175, 80, 0.05);
+}
+
+.cartflows-checkout .abs-general-personalization {
+    border-color: #ddd;
+}
+
 /* Order Display */
 .abs-order-bundle-main {
     font-weight: 600;
