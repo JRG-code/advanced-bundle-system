@@ -2,6 +2,20 @@
 
 All notable changes to the Advanced Bundle System plugin will be documented in this file.
 
+## [1.3.7] - 2025-11-18
+
+### Added
+- CartFlows compatibility layer for seamless checkout integration
+- Personalization display in CartFlows checkout review
+- Support for CartFlows order bumps with personalization
+- Checkout-specific CSS styling for better presentation
+- WooCommerce checkout review personalization display
+
+### Changed
+- Enhanced checkout display with dedicated styling
+- Improved compatibility with third-party checkout plugins
+- Better visual presentation of personalization in checkout pages
+
 ## [1.3.6] - 2025-11-18
 
 ### Added

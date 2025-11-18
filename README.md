@@ -27,6 +27,17 @@ A powerful WordPress/WooCommerce plugin that adds advanced product bundling with
 - **Personalization Display**: Custom text displayed for each personalized product
 - **Discount Badges**: Clear savings indicators throughout
 - **Order Processing**: Personalization data saved to orders
+- **CartFlows Compatible**: Seamless integration with CartFlows checkout pages
+
+### 🔌 Compatibility
+
+- **WooCommerce**: Full compatibility with standard WooCommerce checkout
+- **CartFlows**: Dedicated integration layer for CartFlows checkout pages
+  - Personalization displays in checkout review
+  - Order bumps support with personalization
+  - Custom checkout templates fully supported
+- **Third-party Themes**: Works with most WooCommerce-compatible themes
+- **Page Builders**: Compatible with Elementor, Divi, and other popular builders
 
 ### 🎨 Technical Highlights
 
@@ -104,22 +115,28 @@ A powerful WordPress/WooCommerce plugin that adds advanced product bundling with
 
 ```
 advanced-bundle-system/
-├── advanced-bundle-system.php       # Main plugin file
+├── advanced-bundle-system.php              # Main plugin file
 ├── includes/
-│   ├── class-abs-product-type.php   # Bundle product type
-│   ├── class-abs-admin.php          # Admin functionality
-│   ├── class-abs-frontend.php       # Frontend display
-│   ├── class-abs-cart.php           # Cart functionality
-│   ├── class-abs-personalization.php # Personalization system
-│   └── class-abs-order.php          # Order processing
+│   ├── class-wc-product-bundle.php         # Bundle product class
+│   ├── class-abs-product-type.php          # Bundle product type
+│   ├── class-abs-admin.php                 # Admin functionality
+│   ├── class-abs-frontend.php              # Frontend display
+│   ├── class-abs-cart.php                  # Cart functionality
+│   ├── class-abs-personalization.php       # Personalization system
+│   ├── class-abs-general-personalization.php # Personalization for all product types
+│   ├── class-abs-order.php                 # Order processing
+│   ├── class-abs-stock.php                 # Stock management
+│   ├── class-abs-settings.php              # Plugin settings
+│   ├── class-abs-inventory.php             # Inventory manager
+│   └── class-abs-cartflows-compat.php      # CartFlows compatibility
 ├── assets/
 │   ├── js/
-│   │   ├── frontend.js              # Frontend JavaScript
-│   │   └── admin.js                 # Admin JavaScript
+│   │   ├── frontend.js                     # Frontend JavaScript
+│   │   └── admin.js                        # Admin JavaScript
 │   └── css/
-│       ├── frontend.css             # Frontend styles
-│       └── admin.css                # Admin styles
-└── README.md                        # This file
+│       ├── frontend.css                    # Frontend styles
+│       └── admin.css                       # Admin styles
+└── README.md                               # This file
 ```
 
 ## Hooks & Filters
@@ -179,6 +196,7 @@ Developed by JRG Code
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.3.7
 **Tested up to**: WordPress 6.4 / WooCommerce 8.0
 **Requires**: WordPress 5.8+ / WooCommerce 6.0+ / PHP 7.4+
+**Compatible with**: CartFlows 1.0+
