@@ -2,6 +2,22 @@
 
 All notable changes to the Advanced Bundle System plugin will be documented in this file.
 
+## [1.3.8] - 2025-11-18
+
+### Added
+- Custom disclaimer text field for personalization on all product types
+- Disclaimer field in bundle items table for per-item custom messages
+- Disclaimer field in General tab for simple/variable/grouped/external products
+- Support for custom messages like "3rd image is representative of the font used"
+
+### Removed
+- Preview Personalization button (simplified user experience)
+- Preview modal functionality
+
+### Changed
+- Streamlined personalization interface with focus on disclaimer text
+- Improved admin UX with clearer field labels
+
 ## [1.3.7] - 2025-11-18
 
 ### Added

@@ -82,6 +82,16 @@ class ABS_General_Personalization {
                     ),
                     'value' => $max_characters
                 ));
+
+                $disclaimer_text = get_post_meta($post->ID, '_personalization_disclaimer', true);
+                woocommerce_wp_text_input(array(
+                    'id' => '_personalization_disclaimer',
+                    'label' => __('Disclaimer Text', 'advanced-bundle-system'),
+                    'description' => __('Optional disclaimer text shown below the personalization field. Example: "3rd image is representative of the font used"', 'advanced-bundle-system'),
+                    'desc_tip' => true,
+                    'placeholder' => __('e.g., 3rd image is representative of the font used', 'advanced-bundle-system'),
+                    'value' => $disclaimer_text
+                ));
                 ?>
             </div>
         </div>
@@ -124,10 +134,14 @@ class ABS_General_Personalization {
             $max_characters = isset($_POST['_max_characters']) ? intval($_POST['_max_characters']) : 50;
             $max_characters = max(1, min(100, $max_characters)); // Ensure it's between 1 and 100
             update_post_meta($post_id, '_max_characters', $max_characters);
+
+            $disclaimer_text = isset($_POST['_personalization_disclaimer']) ? sanitize_text_field($_POST['_personalization_disclaimer']) : '';
+            update_post_meta($post_id, '_personalization_disclaimer', $disclaimer_text);
         } else {
             // Clear personalization settings if disabled
             delete_post_meta($post_id, '_personalization_label');
             delete_post_meta($post_id, '_max_characters');
+            delete_post_meta($post_id, '_personalization_disclaimer');
         }
     }
 }

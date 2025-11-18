@@ -76,12 +76,13 @@ class ABS_Product_Type {
                 <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px);">
                     <thead>
                         <tr>
-                            <th style="width: 30%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 8%;"><?php _e('Quantity', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 10%;"><?php _e('Ask Attributes', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 12%;"><?php _e('Personalization', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 20%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 10%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 25%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 6%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 8%;"><?php _e('Attributes', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 8%;"><?php _e('Personalize', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 15%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 8%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 25%;"><?php _e('Disclaimer (optional)', 'advanced-bundle-system'); ?></th>
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
@@ -131,6 +132,7 @@ class ABS_Product_Type {
         $enable_personalization = isset($item['enable_personalization']) ? $item['enable_personalization'] : 'no';
         $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
         $max_characters = isset($item['max_characters']) ? $item['max_characters'] : 50;
+        $personalization_disclaimer = isset($item['personalization_disclaimer']) ? $item['personalization_disclaimer'] : '';
         ?>
         <tr class="abs-bundle-item-row" data-index="<?php echo esc_attr($index); ?>">
             <td>
@@ -188,6 +190,14 @@ class ABS_Product_Type {
                        step="1"
                        class="abs-max-characters"
                        style="width: 60px;" />
+            </td>
+            <td>
+                <input type="text"
+                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][personalization_disclaimer]"
+                       value="<?php echo esc_attr($personalization_disclaimer); ?>"
+                       placeholder="<?php _e('e.g., 3rd image shows font style', 'advanced-bundle-system'); ?>"
+                       style="width: 100%;"
+                       class="abs-personalization-disclaimer" />
             </td>
             <td>
                 <button type="button" class="button abs-remove-item" title="<?php _e('Remove', 'advanced-bundle-system'); ?>">
@@ -301,7 +311,8 @@ class ABS_Product_Type {
                         'ask_attributes' => isset($item['ask_attributes']) ? 'yes' : 'no',
                         'enable_personalization' => isset($item['enable_personalization']) ? 'yes' : 'no',
                         'personalization_label' => isset($item['personalization_label']) ? sanitize_text_field($item['personalization_label']) : __('Enter text:', 'advanced-bundle-system'),
-                        'max_characters' => isset($item['max_characters']) ? max(1, min(100, intval($item['max_characters']))) : 50
+                        'max_characters' => isset($item['max_characters']) ? max(1, min(100, intval($item['max_characters']))) : 50,
+                        'personalization_disclaimer' => isset($item['personalization_disclaimer']) ? sanitize_text_field($item['personalization_disclaimer']) : ''
                     );
                 }
             }
