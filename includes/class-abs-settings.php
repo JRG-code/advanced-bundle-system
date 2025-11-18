@@ -111,6 +111,20 @@ class ABS_Settings {
             )
         );
 
+        // Personalization heading (for non-bundle products)
+        add_settings_field(
+            'abs_personalization_heading',
+            __('Personalization Section Heading', 'advanced-bundle-system'),
+            array($this, 'text_field_callback'),
+            'abs-settings',
+            'abs_display_section',
+            array(
+                'id' => 'personalization_heading',
+                'default' => __('Personalization Options:', 'advanced-bundle-system'),
+                'description' => __('Heading shown above personalization fields for non-bundle products', 'advanced-bundle-system')
+            )
+        );
+
         // Cart/Order Section
         add_settings_section(
             'abs_cart_section',
