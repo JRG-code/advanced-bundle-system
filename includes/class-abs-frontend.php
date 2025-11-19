@@ -43,6 +43,7 @@ class ABS_Frontend {
                 $bundle_items[] = array(
                     'product_id' => $product_id,
                     'quantity' => $quantity,
+                    'variation_id' => 0,
                     'ask_attributes' => 'no',
                     'enable_personalization' => 'no',
                     'personalization_label' => __('Enter text:', 'advanced-bundle-system'),
@@ -63,12 +64,22 @@ class ABS_Frontend {
         foreach ($bundle_items as $index => $item) {
             $product_id = $item['product_id'];
             $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+            $variation_id = isset($item['variation_id']) ? intval($item['variation_id']) : 0;
             $ask_attributes = isset($item['ask_attributes']) && $item['ask_attributes'] === 'yes';
             $enable_personalization = isset($item['enable_personalization']) && $item['enable_personalization'] === 'yes';
 
             $bundled_product = wc_get_product($product_id);
             if (!$bundled_product) {
                 continue;
+            }
+
+            // Get the product to display price from (variation if specified)
+            $price_product = $bundled_product;
+            if ($variation_id > 0) {
+                $variation_product = wc_get_product($variation_id);
+                if ($variation_product) {
+                    $price_product = $variation_product;
+                }
             }
 
             // For products with quantity > 1, create separate entries for attributes/personalization
@@ -81,14 +92,18 @@ class ABS_Frontend {
                     $display_name .= ' #' . ($q + 1);
                 }
 
-                echo '<div class="abs-bundle-item" data-product-id="' . esc_attr($product_id) . '" data-item-index="' . esc_attr($unique_id) . '">';
+                echo '<div class="abs-bundle-item" data-product-id="' . esc_attr($product_id) . '" data-item-index="' . esc_attr($unique_id) . '"';
+                if ($variation_id > 0) {
+                    echo ' data-variation-id="' . esc_attr($variation_id) . '"';
+                }
+                echo '>';
                 echo '<div class="abs-bundle-item-image">';
                 echo $bundled_product->get_image('thumbnail');
                 echo '</div>';
 
                 echo '<div class="abs-bundle-item-details">';
                 echo '<h4>' . esc_html($display_name) . '</h4>';
-                echo '<p class="price">' . $bundled_product->get_price_html() . '</p>';
+                echo '<p class="price">' . $price_product->get_price_html() . '</p>';
 
                 // Add attribute selectors if enabled for this item
                 if ($ask_attributes) {
@@ -281,9 +296,18 @@ class ABS_Frontend {
             // Calculate from bundle items (handles quantities correctly)
             $original_total = 0;
             foreach ($bundle_items as $item) {
-                $bundled_product = wc_get_product($item['product_id']);
+                $product_id = $item['product_id'];
+                $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
+                $variation_id = isset($item['variation_id']) ? intval($item['variation_id']) : 0;
+
+                // Use variation price if specified, otherwise use base product price
+                if ($variation_id > 0) {
+                    $bundled_product = wc_get_product($variation_id);
+                } else {
+                    $bundled_product = wc_get_product($product_id);
+                }
+
                 if ($bundled_product) {
-                    $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
                     $original_total += $bundled_product->get_price() * $quantity;
                 }
             }
