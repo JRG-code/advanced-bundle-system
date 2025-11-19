@@ -77,8 +77,9 @@ class ABS_Frontend {
                 if ($enable_personalization) {
                     $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
                     $max_characters = isset($item['max_characters']) ? intval($item['max_characters']) : 50;
+                    $disclaimer_text = isset($item['personalization_disclaimer']) ? $item['personalization_disclaimer'] : '';
 
-                    $this->display_personalization_fields($product_id, $unique_id, $personalization_label, $max_characters);
+                    $this->display_personalization_fields($product_id, $unique_id, $personalization_label, $max_characters, $disclaimer_text);
                 }
 
                 echo '</div>';
@@ -162,10 +163,13 @@ class ABS_Frontend {
     /**
      * Display personalization fields
      */
-    private function display_personalization_fields($product_id, $unique_id, $label, $max_characters) {
+    private function display_personalization_fields($product_id, $unique_id, $label, $max_characters, $disclaimer_text = '') {
         $placeholder = sprintf(__('Enter text (max %d characters)', 'advanced-bundle-system'), $max_characters);
-        $preview_button_text = ABS_Settings::get_setting('preview_button_text', __('Preview Personalization', 'advanced-bundle-system'));
-        $disclaimer_text = ABS_Settings::get_setting('personalization_disclaimer', __('This is an embroidered product - image is for visualization purposes', 'advanced-bundle-system'));
+
+        // Use global setting if no custom disclaimer provided
+        if (empty($disclaimer_text)) {
+            $disclaimer_text = ABS_Settings::get_setting('personalization_disclaimer', __('This is an embroidered product - image is for visualization purposes', 'advanced-bundle-system'));
+        }
         ?>
         <div class="abs-personalization-fields">
             <div class="abs-personalization-field">
@@ -181,15 +185,11 @@ class ABS_Frontend {
                        placeholder="<?php echo esc_attr($placeholder); ?>" />
             </div>
 
-            <div class="abs-personalization-preview-trigger">
-                <button type="button" class="abs-show-preview" data-product-id="<?php echo $product_id; ?>" data-unique-id="<?php echo $unique_id; ?>">
-                    <?php echo esc_html($preview_button_text); ?>
-                </button>
-            </div>
-
+            <?php if (!empty($disclaimer_text)): ?>
             <div class="abs-personalization-disclaimer">
                 <small><?php echo esc_html($disclaimer_text); ?></small>
             </div>
+            <?php endif; ?>
         </div>
         <?php
     }
@@ -222,6 +222,8 @@ class ABS_Frontend {
             $max_characters = 50;
         }
 
+        $disclaimer_text = get_post_meta($product->get_id(), '_personalization_disclaimer', true);
+
         // Display personalization heading
         $personalization_heading = ABS_Settings::get_setting('personalization_heading', __('Personalization Options:', 'advanced-bundle-system'));
 
@@ -229,7 +231,7 @@ class ABS_Frontend {
         echo '<h3>' . esc_html($personalization_heading) . '</h3>';
 
         // Use unique_id 0 for non-bundle products (they only have one personalization field)
-        $this->display_personalization_fields($product->get_id(), 0, $personalization_label, $max_characters);
+        $this->display_personalization_fields($product->get_id(), 0, $personalization_label, $max_characters, $disclaimer_text);
 
         echo '</div>';
     }

@@ -196,7 +196,7 @@ Developed by JRG Code
 
 ---
 
-**Version**: 1.3.7
+**Version**: 1.3.8
 **Tested up to**: WordPress 6.4 / WooCommerce 8.0
 **Requires**: WordPress 5.8+ / WooCommerce 6.0+ / PHP 7.4+
 **Compatible with**: CartFlows 1.0+
