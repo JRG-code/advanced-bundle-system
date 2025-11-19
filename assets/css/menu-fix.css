@@ -52,6 +52,7 @@ body.single-product {
 #masthead:first-of-type,
 header:first-of-type {
     margin-top: 0 !important;
+    margin-bottom: 30px !important; /* Add space below header instead */
 }
 
 /* Allow space for WordPress admin bar when logged in */
@@ -64,6 +65,13 @@ body.admin-bar #masthead:first-of-type {
     body.admin-bar .site-header:first-of-type,
     body.admin-bar #masthead:first-of-type {
         margin-top: 46px !important;
+    }
+
+    /* Smaller bottom spacing on mobile */
+    .site-header:first-of-type,
+    #masthead:first-of-type,
+    header:first-of-type {
+        margin-bottom: 20px !important;
     }
 }
 
