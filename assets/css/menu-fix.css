@@ -1,71 +1,127 @@
 /**
  * Menu Fix CSS for WooCommerce Product Pages
- * Optional fix for navigation menu visibility issues
+ * Optional fix for navigation menu visibility issues and duplicate menu removal
  */
 
 /* ====================================
-   1. FORCE HEADER VISIBILITY
+   0. REMOVE DUPLICATE MENUS
+   ==================================== */
+
+/* Hide duplicate/second header instances */
+.site-header:nth-of-type(2),
+header.site-header:nth-of-type(2),
+#masthead:nth-of-type(2) {
+    display: none !important;
+}
+
+/* Hide mobile header on desktop (common duplicate cause) */
+@media (min-width: 782px) {
+    .mobile-header,
+    .ast-mobile-header,
+    .ast-mobile-header-wrap,
+    .responsive-menu-wrapper,
+    .mobile-menu-wrapper,
+    .oceanwp-mobile-menu-icon,
+    body:not(.rtl) .mobile-header-navigation-icon {
+        display: none !important;
+    }
+}
+
+/* Hide second consecutive header */
+body.single-product .site-header + .site-header,
+body.single-product header + header,
+body.single-product #masthead + #masthead {
+    display: none !important;
+}
+
+/* Astra specific duplicate removal */
+.ast-header-break-point .ast-mobile-header-wrap {
+    display: none !important;
+}
+
+@media (min-width: 921px) {
+    .ast-mobile-header-wrap,
+    .ast-mobile-menu-buttons {
+        display: none !important;
+    }
+}
+
+/* ====================================
+   1. FORCE HEADER VISIBILITY (Primary Menu Only)
    ==================================== */
 
 /* Standard WordPress & WooCommerce headers */
-.site-header,
-header.site-header,
-#masthead,
-.main-header,
-#site-header,
-header,
-nav.primary-navigation,
-.primary-navigation {
+.site-header:first-of-type,
+header.site-header:first-of-type,
+#masthead:first-of-type,
+.main-header:first-of-type,
+#site-header:first-of-type {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
     z-index: 9999 !important;
 }
 
+/* Desktop navigation only */
+@media (min-width: 782px) {
+    nav.primary-navigation,
+    .primary-navigation,
+    .desktop-navigation,
+    .main-navigation {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+
 /* ====================================
    2. MENU SPECIFIC SELECTORS
    ==================================== */
 
-.main-navigation,
-#site-navigation,
-.site-navigation,
-nav.site-navigation,
-.primary-menu,
-.nav-menu,
-.menu {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+/* Only show primary navigation on desktop */
+@media (min-width: 782px) {
+    .site-header:first-of-type .main-navigation,
+    .site-header:first-of-type #site-navigation,
+    .site-header:first-of-type .site-navigation,
+    .site-header:first-of-type .primary-menu,
+    .site-header:first-of-type .nav-menu {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 }
 
 /* ====================================
    3. THEME-SPECIFIC FIXES
    ==================================== */
 
-/* Astra Theme */
-.ast-header-break-point .site-header,
-.ast-header-break-point .main-header-bar,
-.ast-mobile-header-wrap,
-.ast-builder-menu-1 {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+/* Astra Theme - Desktop only */
+@media (min-width: 921px) {
+    .ast-header-break-point .site-header:first-of-type,
+    .ast-header-break-point .main-header-bar:first-of-type,
+    .ast-builder-menu-1:first-of-type,
+    .ast-desktop-header {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 }
 
-/* OceanWP Theme */
-#site-header,
-#site-header-inner,
-.oceanwp-mobile-menu-icon,
-.oceanwp-nav {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+/* OceanWP Theme - Desktop only */
+@media (min-width: 960px) {
+    #site-header:first-of-type,
+    #site-header-inner:first-of-type,
+    .oceanwp-nav {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 }
 
 /* Storefront Theme */
 .storefront-primary-navigation,
 .site-branding,
-.site-header .col-full {
+.site-header:first-of-type .col-full {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -73,35 +129,37 @@ nav.site-navigation,
 
 /* GeneratePress Theme */
 .inside-header,
-.site-header .inside-header,
-.main-navigation .inside-navigation {
+.site-header:first-of-type .inside-header,
+.main-navigation:first-of-type .inside-navigation {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
 }
 
-/* Divi Theme */
-#main-header,
-#et-top-navigation,
-.et_mobile_menu {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+/* Divi Theme - Desktop only */
+@media (min-width: 981px) {
+    #main-header,
+    #et-top-navigation {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 }
 
-/* Avada Theme */
-#header,
-.fusion-header,
-.fusion-header-wrapper,
-.fusion-mobile-menu-icons {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+/* Avada Theme - Desktop only */
+@media (min-width: 800px) {
+    #header:first-of-type,
+    .fusion-header:first-of-type,
+    .fusion-header-wrapper:first-of-type {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 }
 
 /* Elementor Header */
-header.elementor-location-header,
-.elementor-location-header {
+header.elementor-location-header:first-of-type,
+.elementor-location-header:first-of-type {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -111,10 +169,10 @@ header.elementor-location-header,
    4. PREVENT Z-INDEX CONFLICTS
    ==================================== */
 
-/* Keep headers above product content */
-.site-header,
-#masthead,
-header {
+/* Keep primary header above product content */
+.site-header:first-of-type,
+#masthead:first-of-type,
+header:first-of-type {
     position: relative !important;
     z-index: 9999 !important;
 }
@@ -130,40 +188,42 @@ header {
    5. MOBILE MENU FIXES
    ==================================== */
 
-/* Mobile menu toggles must be visible */
-.mobile-menu-toggle,
-.menu-toggle,
-button.menu-toggle,
-.hamburger,
-.mobile-nav-toggle,
-.nav-toggle {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+/* Mobile menu toggles - only on mobile */
+@media (max-width: 781px) {
+    .site-header:first-of-type .mobile-menu-toggle,
+    .site-header:first-of-type .menu-toggle,
+    .site-header:first-of-type button.menu-toggle,
+    .site-header:first-of-type .hamburger,
+    .site-header:first-of-type .mobile-nav-toggle,
+    .site-header:first-of-type .nav-toggle {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 
-/* Ensure mobile menus can appear */
-.mobile-menu,
-.mobile-navigation,
-.responsive-menu {
-    visibility: visible !important;
-    opacity: 1 !important;
+    /* Ensure mobile menus can appear */
+    .site-header:first-of-type .mobile-menu,
+    .site-header:first-of-type .mobile-navigation,
+    .site-header:first-of-type .responsive-menu {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
 }
 
 /* ====================================
    6. RESET COMMON HIDING TECHNIQUES
    ==================================== */
 
-/* Remove any height restrictions */
-.site-header,
-#masthead {
+/* Remove any height restrictions - first header only */
+.site-header:first-of-type,
+#masthead:first-of-type {
     max-height: none !important;
     height: auto !important;
 }
 
-/* Ensure headers aren't pushed off-screen */
-.site-header,
-#masthead {
+/* Ensure primary header isn't pushed off-screen */
+.site-header:first-of-type,
+#masthead:first-of-type {
     top: auto !important;
     left: auto !important;
     right: auto !important;
@@ -174,9 +234,9 @@ button.menu-toggle,
    7. STICKY HEADER FIXES
    ==================================== */
 
-.sticky-header,
-.is-sticky,
-.fixed-header {
+.site-header:first-of-type.sticky-header,
+.site-header:first-of-type.is-sticky,
+.site-header:first-of-type.fixed-header {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -187,10 +247,10 @@ button.menu-toggle,
    8. CARTFLOWS COMPATIBILITY
    ==================================== */
 
-/* Ensure header appears on CartFlows pages */
-.cartflows_step .site-header,
-.cartflows_step #masthead,
-.wcf-embed-checkout-form .site-header {
+/* Ensure primary header appears on CartFlows pages */
+.cartflows_step .site-header:first-of-type,
+.cartflows_step #masthead:first-of-type,
+.wcf-embed-checkout-form .site-header:first-of-type {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -200,10 +260,10 @@ button.menu-toggle,
    9. PRODUCT PAGE SPECIFIC
    ==================================== */
 
-/* Ensure header is visible on single product pages */
-.single-product .site-header,
-.single-product #masthead,
-.woocommerce-page .site-header {
+/* Ensure primary header is visible on single product pages */
+.single-product .site-header:first-of-type,
+.single-product #masthead:first-of-type,
+.woocommerce-page .site-header:first-of-type {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -213,11 +273,11 @@ button.menu-toggle,
    10. OVERRIDE PAGE-SPECIFIC HIDING
    ==================================== */
 
-/* Some themes hide headers on specific page types */
-.page .site-header,
-.single .site-header,
-body.woocommerce .site-header,
-body.single-product .site-header {
+/* Some themes hide headers on specific page types - show first header only */
+.page .site-header:first-of-type,
+.single .site-header:first-of-type,
+body.woocommerce .site-header:first-of-type,
+body.single-product .site-header:first-of-type {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
