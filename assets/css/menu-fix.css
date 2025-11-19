@@ -40,6 +40,17 @@ body {
     padding-right: 0 !important;
 }
 
+/* Add 15px padding inside the header for menu/logo spacing */
+.site-header:first-of-type .main-header-bar,
+.site-header:first-of-type .ast-container,
+#masthead:first-of-type .site-header-container,
+.site-header:first-of-type .header-inner,
+.site-header:first-of-type > .container,
+.site-header:first-of-type > div:first-child {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+}
+
 /* FIX 2: Remove space above header - header starts at top */
 body,
 body.woocommerce,
@@ -91,15 +102,22 @@ body.admin-bar #masthead:first-of-type {
 @media (max-width: 768px) {
     /* Ensure pink background extends edge-to-edge on mobile */
     .site-header,
-    #masthead,
-    .site-header .site-header-container,
-    .site-header .ast-container {
+    #masthead {
         padding-left: 0 !important;
         padding-right: 0 !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
         max-width: 100% !important;
         width: 100% !important;
+    }
+
+    /* Add 15px padding inside header on mobile */
+    .site-header:first-of-type .main-header-bar,
+    .site-header:first-of-type .ast-container,
+    #masthead:first-of-type .site-header-container,
+    .site-header:first-of-type .header-inner {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
     }
 
     .single-product .product .product_title,
