@@ -49,7 +49,7 @@ class ABS_Settings {
      * Register settings
      */
     public function register_settings() {
-        register_setting('abs_settings_group', 'abs_settings');
+        register_setting('abs_settings_group', 'abs_settings', array($this, 'sanitize_settings'));
 
         // Display Section
         add_settings_section(
@@ -355,6 +355,67 @@ class ABS_Settings {
                 'description' => __('Hide the banner on mobile devices', 'advanced-bundle-system')
             )
         );
+    }
+
+    /**
+     * Sanitize settings
+     *
+     * Handles checkbox fields that don't send data when unchecked
+     */
+    public function sanitize_settings($input) {
+        if (!is_array($input)) {
+            $input = array();
+        }
+
+        // Define all checkbox fields - set to 'no' if not present in input
+        $checkbox_fields = array(
+            'enable_menu_fix',
+            'enable_promo_banner',
+            'promo_banner_dismissible',
+            'promo_banner_sticky',
+            'promo_banner_hide_mobile'
+        );
+
+        // Ensure all checkboxes have a value (default to 'no' if unchecked)
+        foreach ($checkbox_fields as $field) {
+            if (!isset($input[$field])) {
+                $input[$field] = 'no';
+            }
+        }
+
+        // Sanitize text fields
+        if (isset($input['bundle_heading'])) {
+            $input['bundle_heading'] = sanitize_text_field($input['bundle_heading']);
+        }
+        if (isset($input['bundle_button_text'])) {
+            $input['bundle_button_text'] = sanitize_text_field($input['bundle_button_text']);
+        }
+        if (isset($input['promo_banner_text'])) {
+            $input['promo_banner_text'] = wp_kses_post($input['promo_banner_text']);
+        }
+        if (isset($input['promo_banner_link'])) {
+            $input['promo_banner_link'] = esc_url_raw($input['promo_banner_link']);
+        }
+
+        // Sanitize color fields
+        if (isset($input['menu_fix_bg_color'])) {
+            $input['menu_fix_bg_color'] = sanitize_hex_color($input['menu_fix_bg_color']);
+        }
+        if (isset($input['promo_banner_bg_color'])) {
+            $input['promo_banner_bg_color'] = sanitize_hex_color($input['promo_banner_bg_color']);
+        }
+        if (isset($input['promo_banner_text_color'])) {
+            $input['promo_banner_text_color'] = sanitize_hex_color($input['promo_banner_text_color']);
+        }
+
+        // Sanitize array fields (multicheck)
+        if (isset($input['promo_banner_pages']) && is_array($input['promo_banner_pages'])) {
+            $input['promo_banner_pages'] = array_map('sanitize_key', $input['promo_banner_pages']);
+        } elseif (!isset($input['promo_banner_pages'])) {
+            $input['promo_banner_pages'] = array();
+        }
+
+        return $input;
     }
 
     /**
