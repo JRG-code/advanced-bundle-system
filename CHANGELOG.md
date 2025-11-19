@@ -8,9 +8,21 @@ All notable changes to the Advanced Bundle System plugin will be documented in t
 - Custom background color picker for menu fix
 - WordPress color picker integration in Bundle Settings
 - Customizable menu background color (default: white) with live color selection
+- Duplicate menu removal - automatically hides second/duplicate headers
+- Mobile header detection and hiding on desktop devices
+- Smart :first-of-type selectors to show only primary menu
 
 ### Changed
 - Menu fix now applies custom background color to all header and navigation elements
+- Menu fix CSS now targets only the first header instance to prevent duplicates
+- Theme-specific fixes wrapped in proper media queries
+- Mobile menu toggles only show on mobile devices (prevents duplicate mobile headers on desktop)
+
+### Fixed
+- Duplicate navigation menus appearing on product pages
+- Mobile header showing on desktop alongside main header
+- Astra theme mobile header duplication issue
+- Multiple header instances stacking vertically
 
 ## [1.3.9] - 2025-11-19
 
