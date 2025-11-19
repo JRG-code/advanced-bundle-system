@@ -1,7 +1,88 @@
 /**
  * Menu Fix CSS for WooCommerce Product Pages
  * Optional fix for navigation menu visibility issues and duplicate menu removal
+ * Includes spacing fixes for professional layout
  */
+
+/* ====================================
+   SPACING FIXES - Professional Layout
+   ==================================== */
+
+/* FIX 1: Remove excessive left padding from header/logo */
+.site-header,
+.site-header .site-header-container,
+.site-header .ast-container,
+.site-header-inner,
+#masthead,
+#masthead .site-header-container,
+.header-wrapper,
+.main-header-bar {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+}
+
+/* Logo should be close to left edge */
+.site-branding,
+.site-logo,
+.custom-logo-link,
+.site-title {
+    margin-left: 0 !important;
+}
+
+/* FIX 2: Remove space above header - header starts at top */
+body,
+body.woocommerce,
+body.single-product {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.site-header:first-of-type,
+#masthead:first-of-type,
+header:first-of-type {
+    margin-top: 0 !important;
+}
+
+/* Allow space for WordPress admin bar when logged in */
+body.admin-bar .site-header:first-of-type,
+body.admin-bar #masthead:first-of-type {
+    margin-top: 32px !important;
+}
+
+@media screen and (max-width: 782px) {
+    body.admin-bar .site-header:first-of-type,
+    body.admin-bar #masthead:first-of-type {
+        margin-top: 46px !important;
+    }
+}
+
+/* FIX 3: Add breathing room between product title and image */
+.single-product .product .product_title,
+.woocommerce div.product .product_title {
+    margin-bottom: 25px !important;
+}
+
+/* Alternative: add top margin to product gallery if title spacing doesn't work */
+.single-product .woocommerce-product-gallery,
+.single-product div.product div.images {
+    margin-top: 25px !important;
+}
+
+/* Responsive spacing adjustments for mobile */
+@media (max-width: 768px) {
+    .site-header,
+    .site-header .site-header-container,
+    #masthead {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .single-product .product .product_title,
+    .single-product .woocommerce-product-gallery {
+        margin-bottom: 20px !important;
+        margin-top: 20px !important;
+    }
+}
 
 /* ====================================
    0. REMOVE DUPLICATE MENUS

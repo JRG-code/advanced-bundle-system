@@ -11,18 +11,28 @@ All notable changes to the Advanced Bundle System plugin will be documented in t
 - Duplicate menu removal - automatically hides second/duplicate headers
 - Mobile header detection and hiding on desktop devices
 - Smart :first-of-type selectors to show only primary menu
+- Professional spacing fixes for header and product pages:
+  - Reduced excessive left padding on header/logo (now 15px instead of 50-100px)
+  - Removed unwanted space above header (header starts at page top)
+  - Added breathing room between product title and image (25px spacing)
 
 ### Changed
 - Menu fix now applies custom background color to all header and navigation elements
 - Menu fix CSS now targets only the first header instance to prevent duplicates
 - Theme-specific fixes wrapped in proper media queries
 - Mobile menu toggles only show on mobile devices (prevents duplicate mobile headers on desktop)
+- Header spacing optimized for professional, edge-to-edge appearance
+- Logo and branding elements properly anchored to left edge
 
 ### Fixed
 - Duplicate navigation menus appearing on product pages
 - Mobile header showing on desktop alongside main header
 - Astra theme mobile header duplication issue
 - Multiple header instances stacking vertically
+- Excessive left padding creating large gaps in header
+- Unwanted white space above header bar
+- Cramped spacing between product title and product image gallery
+- WordPress admin bar compatibility (proper spacing when logged in)
 
 ## [1.3.9] - 2025-11-19
 

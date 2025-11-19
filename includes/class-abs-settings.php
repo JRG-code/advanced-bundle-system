@@ -197,7 +197,7 @@ class ABS_Settings {
             array(
                 'id' => 'enable_menu_fix',
                 'default' => 'no',
-                'description' => __('Fix navigation menu disappearing on WooCommerce product pages (only enable if you experience menu visibility issues)', 'advanced-bundle-system')
+                'description' => __('Fixes menu visibility, duplicate menus, excessive header padding, and spacing issues on product pages', 'advanced-bundle-system')
             )
         );
 
@@ -234,7 +234,8 @@ class ABS_Settings {
      * Menu fix section callback
      */
     public function menu_fix_section_callback() {
-        echo '<p>' . __('Optional menu visibility fix for WooCommerce product pages. Only enable if your navigation menu disappears on product pages.', 'advanced-bundle-system') . '</p>';
+        echo '<p>' . __('Optional menu visibility fix for WooCommerce product pages. Fixes menu disappearing, duplicate menus, and improves spacing/layout.', 'advanced-bundle-system') . '</p>';
+        echo '<p class="description">' . __('Includes: Menu visibility fixes, duplicate menu removal, header spacing optimization (removes excessive padding), product page spacing improvements.', 'advanced-bundle-system') . '</p>';
     }
 
     /**
