@@ -2,6 +2,20 @@
 
 All notable changes to the Advanced Bundle System plugin will be documented in this file.
 
+## [1.3.9] - 2025-11-19
+
+### Added
+- Optional menu fix setting to resolve navigation menu disappearing on WooCommerce product pages
+- New "Menu Fix Settings" section in Bundle Settings (WooCommerce > Bundle Settings)
+- Comprehensive CSS fix for menu visibility across all major WordPress themes
+- Support for Astra, OceanWP, Storefront, GeneratePress, Divi, Avada, and Elementor themes
+- Mobile menu compatibility fixes
+
+### Changed
+- Menu fix is disabled by default (only enable if experiencing menu issues)
+- Integrated menu fix directly into plugin settings (no separate plugin needed)
+- Menu fix CSS only loads on product pages when enabled
+
 ## [1.3.8] - 2025-11-18
 
 ### Added

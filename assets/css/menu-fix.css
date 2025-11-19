@@ -1,0 +1,224 @@
+/**
+ * Menu Fix CSS for WooCommerce Product Pages
+ * Optional fix for navigation menu visibility issues
+ */
+
+/* ====================================
+   1. FORCE HEADER VISIBILITY
+   ==================================== */
+
+/* Standard WordPress & WooCommerce headers */
+.site-header,
+header.site-header,
+#masthead,
+.main-header,
+#site-header,
+header,
+nav.primary-navigation,
+.primary-navigation {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+}
+
+/* ====================================
+   2. MENU SPECIFIC SELECTORS
+   ==================================== */
+
+.main-navigation,
+#site-navigation,
+.site-navigation,
+nav.site-navigation,
+.primary-menu,
+.nav-menu,
+.menu {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* ====================================
+   3. THEME-SPECIFIC FIXES
+   ==================================== */
+
+/* Astra Theme */
+.ast-header-break-point .site-header,
+.ast-header-break-point .main-header-bar,
+.ast-mobile-header-wrap,
+.ast-builder-menu-1 {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* OceanWP Theme */
+#site-header,
+#site-header-inner,
+.oceanwp-mobile-menu-icon,
+.oceanwp-nav {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Storefront Theme */
+.storefront-primary-navigation,
+.site-branding,
+.site-header .col-full {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* GeneratePress Theme */
+.inside-header,
+.site-header .inside-header,
+.main-navigation .inside-navigation {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Divi Theme */
+#main-header,
+#et-top-navigation,
+.et_mobile_menu {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Avada Theme */
+#header,
+.fusion-header,
+.fusion-header-wrapper,
+.fusion-mobile-menu-icons {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Elementor Header */
+header.elementor-location-header,
+.elementor-location-header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* ====================================
+   4. PREVENT Z-INDEX CONFLICTS
+   ==================================== */
+
+/* Keep headers above product content */
+.site-header,
+#masthead,
+header {
+    position: relative !important;
+    z-index: 9999 !important;
+}
+
+/* Prevent product images from overlaying header */
+.woocommerce-product-gallery,
+.woocommerce div.product div.images,
+.single-product .product .images {
+    z-index: 1 !important;
+}
+
+/* ====================================
+   5. MOBILE MENU FIXES
+   ==================================== */
+
+/* Mobile menu toggles must be visible */
+.mobile-menu-toggle,
+.menu-toggle,
+button.menu-toggle,
+.hamburger,
+.mobile-nav-toggle,
+.nav-toggle {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure mobile menus can appear */
+.mobile-menu,
+.mobile-navigation,
+.responsive-menu {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* ====================================
+   6. RESET COMMON HIDING TECHNIQUES
+   ==================================== */
+
+/* Remove any height restrictions */
+.site-header,
+#masthead {
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* Ensure headers aren't pushed off-screen */
+.site-header,
+#masthead {
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+}
+
+/* ====================================
+   7. STICKY HEADER FIXES
+   ==================================== */
+
+.sticky-header,
+.is-sticky,
+.fixed-header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+}
+
+/* ====================================
+   8. CARTFLOWS COMPATIBILITY
+   ==================================== */
+
+/* Ensure header appears on CartFlows pages */
+.cartflows_step .site-header,
+.cartflows_step #masthead,
+.wcf-embed-checkout-form .site-header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* ====================================
+   9. PRODUCT PAGE SPECIFIC
+   ==================================== */
+
+/* Ensure header is visible on single product pages */
+.single-product .site-header,
+.single-product #masthead,
+.woocommerce-page .site-header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* ====================================
+   10. OVERRIDE PAGE-SPECIFIC HIDING
+   ==================================== */
+
+/* Some themes hide headers on specific page types */
+.page .site-header,
+.single .site-header,
+body.woocommerce .site-header,
+body.single-product .site-header {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

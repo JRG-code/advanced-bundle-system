@@ -174,6 +174,28 @@ class ABS_Settings {
                 'description' => __('Format for discount badge. Use %s for the percentage number.', 'advanced-bundle-system')
             )
         );
+
+        // Menu Fix Section
+        add_settings_section(
+            'abs_menu_fix_section',
+            __('Menu Fix Settings', 'advanced-bundle-system'),
+            array($this, 'menu_fix_section_callback'),
+            'abs-settings'
+        );
+
+        // Enable menu fix
+        add_settings_field(
+            'abs_enable_menu_fix',
+            __('Enable Menu Fix', 'advanced-bundle-system'),
+            array($this, 'checkbox_field_callback'),
+            'abs-settings',
+            'abs_menu_fix_section',
+            array(
+                'id' => 'enable_menu_fix',
+                'default' => 'no',
+                'description' => __('Fix navigation menu disappearing on WooCommerce product pages (only enable if you experience menu visibility issues)', 'advanced-bundle-system')
+            )
+        );
     }
 
     /**
@@ -191,6 +213,13 @@ class ABS_Settings {
     }
 
     /**
+     * Menu fix section callback
+     */
+    public function menu_fix_section_callback() {
+        echo '<p>' . __('Optional menu visibility fix for WooCommerce product pages. Only enable if your navigation menu disappears on product pages.', 'advanced-bundle-system') . '</p>';
+    }
+
+    /**
      * Text field callback
      */
     public function text_field_callback($args) {
@@ -202,6 +231,28 @@ class ABS_Settings {
                name="abs_settings[<?php echo esc_attr($args['id']); ?>]"
                value="<?php echo esc_attr($value); ?>"
                class="regular-text" />
+        <?php if (!empty($args['description'])): ?>
+            <p class="description"><?php echo esc_html($args['description']); ?></p>
+        <?php endif; ?>
+        <?php
+    }
+
+    /**
+     * Checkbox field callback
+     */
+    public function checkbox_field_callback($args) {
+        $settings = get_option('abs_settings', array());
+        $value = isset($settings[$args['id']]) ? $settings[$args['id']] : $args['default'];
+        $checked = ($value === 'yes') ? 'checked' : '';
+        ?>
+        <label>
+            <input type="checkbox"
+                   id="abs_settings_<?php echo esc_attr($args['id']); ?>"
+                   name="abs_settings[<?php echo esc_attr($args['id']); ?>]"
+                   value="yes"
+                   <?php echo $checked; ?> />
+            <?php _e('Enable', 'advanced-bundle-system'); ?>
+        </label>
         <?php if (!empty($args['description'])): ?>
             <p class="description"><?php echo esc_html($args['description']); ?></p>
         <?php endif; ?>
