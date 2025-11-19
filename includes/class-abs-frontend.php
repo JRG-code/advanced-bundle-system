@@ -26,8 +26,30 @@ class ABS_Frontend {
         }
 
         $bundle_items = get_post_meta($product->get_id(), '_bundle_items', true);
+
+        // Backward compatibility: convert old format to new format if needed
         if (empty($bundle_items) || !is_array($bundle_items)) {
-            return;
+            $old_bundle_products = get_post_meta($product->get_id(), '_bundle_products', true);
+
+            if (empty($old_bundle_products) || !is_array($old_bundle_products)) {
+                return; // No bundle data at all
+            }
+
+            // Convert old format to new format for display
+            $bundle_items = array();
+            $product_counts = array_count_values($old_bundle_products);
+
+            foreach ($product_counts as $product_id => $quantity) {
+                $bundle_items[] = array(
+                    'product_id' => $product_id,
+                    'quantity' => $quantity,
+                    'ask_attributes' => 'no',
+                    'enable_personalization' => 'no',
+                    'personalization_label' => __('Enter text:', 'advanced-bundle-system'),
+                    'max_characters' => 50,
+                    'personalization_disclaimer' => ''
+                );
+            }
         }
 
         $bundle_heading = ABS_Settings::get_setting('bundle_heading', __('This bundle includes:', 'advanced-bundle-system'));
@@ -244,23 +266,52 @@ class ABS_Frontend {
             return $price_html;
         }
 
-        $bundle_products = get_post_meta($product->get_id(), '_bundle_products', true);
-        if (empty($bundle_products)) {
+        // Get bundle items (primary source)
+        $bundle_items = get_post_meta($product->get_id(), '_bundle_items', true);
+
+        // Fallback to old format for backward compatibility
+        if (empty($bundle_items) || !is_array($bundle_items)) {
+            $bundle_products = get_post_meta($product->get_id(), '_bundle_products', true);
+            if (empty($bundle_products)) {
+                return $price_html;
+            }
+            // Use old format
+            $original_total = ABS_Product_Type::get_bundle_products_total($bundle_products);
+        } else {
+            // Calculate from bundle items (handles quantities correctly)
+            $original_total = 0;
+            foreach ($bundle_items as $item) {
+                $bundled_product = wc_get_product($item['product_id']);
+                if ($bundled_product) {
+                    $quantity = isset($item['quantity']) ? intval($item['quantity']) : 1;
+                    $original_total += $bundled_product->get_price() * $quantity;
+                }
+            }
+        }
+
+        $bundle_price = floatval(get_post_meta($product->get_id(), '_bundle_price', true));
+
+        // If bundle price is not set, return default price html
+        if ($bundle_price <= 0) {
             return $price_html;
         }
 
-        $original_total = ABS_Product_Type::get_bundle_products_total($bundle_products);
-        $bundle_price = floatval(get_post_meta($product->get_id(), '_bundle_price', true));
         $discount_percent = ABS_Product_Type::calculate_discount($original_total, $bundle_price);
 
-        if ($discount_percent <= 0) {
-            return $price_html;
+        // Show pricing even if no discount (original price + bundle price)
+        $pricing_html = '<div class="abs-bundle-pricing">';
+
+        if ($original_total > $bundle_price) {
+            // Show strikethrough original price if there's a discount
+            $pricing_html .= '<p class="abs-original-price"><del>' . wc_price($original_total) . '</del></p>';
         }
 
-        $pricing_html = '<div class="abs-bundle-pricing">';
-        $pricing_html .= '<p class="abs-original-price"><del>' . wc_price($original_total) . '</del></p>';
         $pricing_html .= '<p class="abs-bundle-price"><ins>' . wc_price($bundle_price) . '</ins></p>';
-        $pricing_html .= '<p class="abs-discount-badge">' . sprintf(__('Save %s%%', 'advanced-bundle-system'), $discount_percent) . '</p>';
+
+        if ($discount_percent > 0) {
+            $pricing_html .= '<p class="abs-discount-badge">' . sprintf(__('Save %s%%', 'advanced-bundle-system'), $discount_percent) . '</p>';
+        }
+
         $pricing_html .= '</div>';
 
         return $pricing_html;
