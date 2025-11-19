@@ -17,8 +17,8 @@
 #masthead .site-header-container,
 .header-wrapper,
 .main-header-bar {
-    padding-left: 15px !important;
-    padding-right: 15px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 
 /* Logo should be close to left edge */
@@ -73,8 +73,8 @@ body.admin-bar #masthead:first-of-type {
     .site-header,
     .site-header .site-header-container,
     #masthead {
-        padding-left: 10px !important;
-        padding-right: 10px !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
 
     .single-product .product .product_title,
