@@ -214,6 +214,147 @@ class ABS_Settings {
                 'description' => __('Background color for the navigation menu (default: white)', 'advanced-bundle-system')
             )
         );
+
+        // Promotional Banner Section
+        add_settings_section(
+            'abs_promo_banner_section',
+            __('Promotional Banner Settings', 'advanced-bundle-system'),
+            array($this, 'promo_banner_section_callback'),
+            'abs-settings'
+        );
+
+        // Enable promotional banner
+        add_settings_field(
+            'abs_enable_promo_banner',
+            __('Enable Promotional Banner', 'advanced-bundle-system'),
+            array($this, 'checkbox_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'enable_promo_banner',
+                'default' => 'no',
+                'description' => __('Display a promotional banner above your header for announcements, sales, or marketing messages', 'advanced-bundle-system')
+            )
+        );
+
+        // Banner text
+        add_settings_field(
+            'abs_promo_banner_text',
+            __('Banner Text', 'advanced-bundle-system'),
+            array($this, 'textarea_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'promo_banner_text',
+                'default' => __('🎁 Free Shipping on orders over €50', 'advanced-bundle-system'),
+                'description' => __('The message to display in the banner. You can use emojis and HTML formatting.', 'advanced-bundle-system')
+            )
+        );
+
+        // Banner link
+        add_settings_field(
+            'abs_promo_banner_link',
+            __('Banner Link (optional)', 'advanced-bundle-system'),
+            array($this, 'text_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'promo_banner_link',
+                'default' => '',
+                'description' => __('Make the banner clickable. Leave empty for no link.', 'advanced-bundle-system')
+            )
+        );
+
+        // Banner background color
+        add_settings_field(
+            'abs_promo_banner_bg_color',
+            __('Background Color', 'advanced-bundle-system'),
+            array($this, 'color_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'promo_banner_bg_color',
+                'default' => '#000000',
+                'description' => __('Banner background color (default: black)', 'advanced-bundle-system')
+            )
+        );
+
+        // Banner text color
+        add_settings_field(
+            'abs_promo_banner_text_color',
+            __('Text Color', 'advanced-bundle-system'),
+            array($this, 'color_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'promo_banner_text_color',
+                'default' => '#ffffff',
+                'description' => __('Banner text color (default: white)', 'advanced-bundle-system')
+            )
+        );
+
+        // Banner behavior
+        add_settings_field(
+            'abs_promo_banner_dismissible',
+            __('Dismissible Banner', 'advanced-bundle-system'),
+            array($this, 'checkbox_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'promo_banner_dismissible',
+                'default' => 'yes',
+                'description' => __('Allow users to close the banner with an X button', 'advanced-bundle-system')
+            )
+        );
+
+        // Banner sticky
+        add_settings_field(
+            'abs_promo_banner_sticky',
+            __('Sticky Banner', 'advanced-bundle-system'),
+            array($this, 'checkbox_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'promo_banner_sticky',
+                'default' => 'no',
+                'description' => __('Keep banner visible when scrolling down the page', 'advanced-bundle-system')
+            )
+        );
+
+        // Display on pages
+        add_settings_field(
+            'abs_promo_banner_pages',
+            __('Display On', 'advanced-bundle-system'),
+            array($this, 'multicheck_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'promo_banner_pages',
+                'options' => array(
+                    'home' => __('Homepage', 'advanced-bundle-system'),
+                    'shop' => __('Shop Pages', 'advanced-bundle-system'),
+                    'product' => __('Product Pages', 'advanced-bundle-system'),
+                    'cart' => __('Cart Page', 'advanced-bundle-system'),
+                    'checkout' => __('Checkout Page', 'advanced-bundle-system'),
+                ),
+                'default' => array('home', 'shop', 'product'),
+                'description' => __('Select which pages should display the banner', 'advanced-bundle-system')
+            )
+        );
+
+        // Hide on mobile
+        add_settings_field(
+            'abs_promo_banner_hide_mobile',
+            __('Hide on Mobile', 'advanced-bundle-system'),
+            array($this, 'checkbox_field_callback'),
+            'abs-settings',
+            'abs_promo_banner_section',
+            array(
+                'id' => 'promo_banner_hide_mobile',
+                'default' => 'no',
+                'description' => __('Hide the banner on mobile devices', 'advanced-bundle-system')
+            )
+        );
     }
 
     /**
@@ -236,6 +377,14 @@ class ABS_Settings {
     public function menu_fix_section_callback() {
         echo '<p>' . __('Optional menu visibility fix for WooCommerce product pages. Fixes menu disappearing, duplicate menus, and improves spacing/layout.', 'advanced-bundle-system') . '</p>';
         echo '<p class="description">' . __('Includes: Menu visibility fixes, duplicate menu removal, header spacing optimization (removes excessive padding), product page spacing improvements.', 'advanced-bundle-system') . '</p>';
+    }
+
+    /**
+     * Promo banner section callback
+     */
+    public function promo_banner_section_callback() {
+        echo '<p>' . __('Display a promotional banner above your header for announcements, sales, or special offers.', 'advanced-bundle-system') . '</p>';
+        echo '<p class="description">' . __('The banner appears at the top of selected pages and can be customized with your brand colors.', 'advanced-bundle-system') . '</p>';
     }
 
     /**
@@ -294,6 +443,53 @@ class ABS_Settings {
             <p class="description"><?php echo esc_html($args['description']); ?></p>
         <?php endif; ?>
         <?php
+    }
+
+    /**
+     * Textarea field callback
+     */
+    public function textarea_field_callback($args) {
+        $settings = get_option('abs_settings', array());
+        $value = isset($settings[$args['id']]) ? $settings[$args['id']] : $args['default'];
+        ?>
+        <textarea
+            id="abs_settings_<?php echo esc_attr($args['id']); ?>"
+            name="abs_settings[<?php echo esc_attr($args['id']); ?>]"
+            rows="3"
+            class="large-text"><?php echo esc_textarea($value); ?></textarea>
+        <?php if (!empty($args['description'])): ?>
+            <p class="description"><?php echo esc_html($args['description']); ?></p>
+        <?php endif; ?>
+        <?php
+    }
+
+    /**
+     * Multi-checkbox field callback
+     */
+    public function multicheck_field_callback($args) {
+        $settings = get_option('abs_settings', array());
+        $value = isset($settings[$args['id']]) ? $settings[$args['id']] : $args['default'];
+
+        if (!is_array($value)) {
+            $value = $args['default'];
+        }
+
+        foreach ($args['options'] as $key => $label) {
+            $checked = in_array($key, $value) ? 'checked' : '';
+            ?>
+            <label style="display: block; margin-bottom: 5px;">
+                <input type="checkbox"
+                       name="abs_settings[<?php echo esc_attr($args['id']); ?>][]"
+                       value="<?php echo esc_attr($key); ?>"
+                       <?php echo $checked; ?> />
+                <?php echo esc_html($label); ?>
+            </label>
+            <?php
+        }
+
+        if (!empty($args['description'])): ?>
+            <p class="description"><?php echo esc_html($args['description']); ?></p>
+        <?php endif;
     }
 
     /**

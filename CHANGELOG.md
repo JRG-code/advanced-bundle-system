@@ -2,6 +2,31 @@
 
 All notable changes to the Advanced Bundle System plugin will be documented in this file.
 
+## [1.5.2] - 2025-11-19
+
+### Added
+- Promotional Banner System integrated into Bundle Settings
+- Customizable promotional banner above header for announcements and sales
+- Full banner configuration options:
+  - Custom banner text with emoji and HTML support
+  - Optional clickable link
+  - Custom background and text colors with color picker
+  - Dismissible option (users can close with X button)
+  - Sticky banner option (stays visible when scrolling)
+  - Hide on mobile option
+  - Display rules (Homepage, Shop, Product pages, Cart, Checkout)
+- Cookie-based banner dismissal (remembers for 24 hours)
+- Smooth slide-up animation when dismissed
+- WooCommerce and CartFlows compatible
+- WordPress admin bar compatible (proper spacing when logged in)
+
+### Technical
+- New class: `ABS_Promo_Banner` for banner display and logic
+- New settings callbacks: `textarea_field_callback`, `multicheck_field_callback`
+- Banner loads via `wp_body_open` hook (appears above header)
+- Responsive design with mobile optimizations
+- Accessibility features (ARIA labels, keyboard navigation)
+
 ## [1.3.10] - 2025-11-19
 
 ### Added
