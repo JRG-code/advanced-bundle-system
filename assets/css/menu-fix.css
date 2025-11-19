@@ -8,25 +8,36 @@
    SPACING FIXES - Professional Layout
    ==================================== */
 
-/* FIX 1: Remove excessive left padding from header/logo */
+/* FIX 1: Make pink/red background container extend edge-to-edge */
+/* Remove padding/margin from OUTER header container (the one with background color) */
 .site-header,
-.site-header .site-header-container,
-.site-header .ast-container,
-.site-header-inner,
 #masthead,
-#masthead .site-header-container,
-.header-wrapper,
-.main-header-bar {
+header.site-header,
+.main-header,
+#site-header,
+.header-wrapper {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Ensure body doesn't add padding that creates gaps */
+body {
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
 
-/* Logo should be close to left edge */
-.site-branding,
-.site-logo,
-.custom-logo-link,
-.site-title {
-    margin-left: 0 !important;
+/* Remove max-width constraints from parent wrappers */
+.site-header .ast-container,
+.site-header-container,
+.main-header-bar-wrap {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 
 /* FIX 2: Remove space above header - header starts at top */
@@ -70,11 +81,17 @@ body.admin-bar #masthead:first-of-type {
 
 /* Responsive spacing adjustments for mobile */
 @media (max-width: 768px) {
+    /* Ensure pink background extends edge-to-edge on mobile */
     .site-header,
+    #masthead,
     .site-header .site-header-container,
-    #masthead {
+    .site-header .ast-container {
         padding-left: 0 !important;
         padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
 
     .single-product .product .product_title,
