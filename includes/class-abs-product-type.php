@@ -76,13 +76,14 @@ class ABS_Product_Type {
                 <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px);">
                     <thead>
                         <tr>
-                            <th style="width: 25%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 6%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 8%;"><?php _e('Attributes', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 8%;"><?php _e('Personalize', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 15%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 8%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 25%;"><?php _e('Disclaimer (optional)', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 20%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 12%;"><?php _e('Price/Variation', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 5%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 7%;"><?php _e('Attributes', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 7%;"><?php _e('Personalize', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 13%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 7%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 24%;"><?php _e('Disclaimer (optional)', 'advanced-bundle-system'); ?></th>
                             <th style="width: 5%;"></th>
                         </tr>
                     </thead>
@@ -128,6 +129,7 @@ class ABS_Product_Type {
     private function render_bundle_item_row($index, $item = array(), $product = null) {
         $product_id = isset($item['product_id']) ? $item['product_id'] : '';
         $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+        $variation_id = isset($item['variation_id']) ? $item['variation_id'] : 0;
         $ask_attributes = isset($item['ask_attributes']) ? $item['ask_attributes'] : 'no';
         $enable_personalization = isset($item['enable_personalization']) ? $item['enable_personalization'] : 'no';
         $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
@@ -148,6 +150,41 @@ class ABS_Product_Type {
                         <option value=""><?php _e('Select a product', 'advanced-bundle-system'); ?></option>
                     <?php endif; ?>
                 </select>
+            </td>
+            <td>
+                <?php if ($product && $product->is_type('variable')): ?>
+                    <select name="abs_bundle_items[<?php echo esc_attr($index); ?>][variation_id]"
+                            class="abs-variation-select"
+                            style="width: 100%; font-size: 12px;"
+                            title="<?php esc_attr_e('Select which variation price to use for bundle calculation', 'advanced-bundle-system'); ?>">
+                        <option value="0"><?php _e('Min price', 'advanced-bundle-system'); ?></option>
+                        <?php
+                        $variations = $product->get_available_variations();
+                        foreach ($variations as $variation_data) {
+                            $variation = wc_get_product($variation_data['variation_id']);
+                            if ($variation) {
+                                $attributes_text = wc_get_formatted_variation($variation, true);
+                                $selected = ($variation_id == $variation_data['variation_id']) ? 'selected' : '';
+                                ?>
+                                <option value="<?php echo esc_attr($variation_data['variation_id']); ?>" <?php echo $selected; ?>>
+                                    <?php echo esc_html($attributes_text . ' - ' . wc_price($variation->get_price())); ?>
+                                </option>
+                                <?php
+                            }
+                        }
+                        ?>
+                    </select>
+                    <span class="dashicons dashicons-info" style="color: #2271b1; cursor: help; font-size: 16px; vertical-align: middle;"
+                          title="<?php esc_attr_e('For variable products: select which variation\'s price to use in bundle calculations. This price will be used unless customer changes variation.', 'advanced-bundle-system'); ?>"></span>
+                <?php elseif ($product): ?>
+                    <span style="font-size: 13px; color: #666;">
+                        <?php echo wc_price($product->get_price()); ?>
+                    </span>
+                    <input type="hidden" name="abs_bundle_items[<?php echo esc_attr($index); ?>][variation_id]" value="0" />
+                <?php else: ?>
+                    <span style="font-size: 12px; color: #999;">-</span>
+                    <input type="hidden" name="abs_bundle_items[<?php echo esc_attr($index); ?>][variation_id]" value="0" />
+                <?php endif; ?>
             </td>
             <td style="text-align: center;">
                 <input type="number"
@@ -308,6 +345,7 @@ class ABS_Product_Type {
                     $bundle_items[] = array(
                         'product_id' => intval($item['product_id']),
                         'quantity' => isset($item['quantity']) ? max(1, intval($item['quantity'])) : 1,
+                        'variation_id' => isset($item['variation_id']) ? intval($item['variation_id']) : 0,
                         'ask_attributes' => isset($item['ask_attributes']) ? 'yes' : 'no',
                         'enable_personalization' => isset($item['enable_personalization']) ? 'yes' : 'no',
                         'personalization_label' => isset($item['personalization_label']) ? sanitize_text_field($item['personalization_label']) : __('Enter text:', 'advanced-bundle-system'),
