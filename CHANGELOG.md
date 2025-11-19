@@ -2,6 +2,16 @@
 
 All notable changes to the Advanced Bundle System plugin will be documented in this file.
 
+## [1.3.10] - 2025-11-19
+
+### Added
+- Custom background color picker for menu fix
+- WordPress color picker integration in Bundle Settings
+- Customizable menu background color (default: white) with live color selection
+
+### Changed
+- Menu fix now applies custom background color to all header and navigation elements
+
 ## [1.3.9] - 2025-11-19
 
 ### Added

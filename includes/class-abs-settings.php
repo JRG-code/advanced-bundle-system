@@ -23,8 +23,12 @@ class ABS_Settings {
             return;
         }
 
-        wp_enqueue_style('abs-settings', ABS_PLUGIN_URL . 'assets/css/settings.css', array(), ABS_VERSION);
-        wp_enqueue_script('abs-settings', ABS_PLUGIN_URL . 'assets/js/settings.js', array('jquery'), ABS_VERSION, true);
+        // Enqueue WordPress color picker
+        wp_enqueue_style('wp-color-picker');
+        wp_enqueue_script('wp-color-picker');
+
+        wp_enqueue_style('abs-settings', ABS_PLUGIN_URL . 'assets/css/settings.css', array('wp-color-picker'), ABS_VERSION);
+        wp_enqueue_script('abs-settings', ABS_PLUGIN_URL . 'assets/js/settings.js', array('jquery', 'wp-color-picker'), ABS_VERSION, true);
     }
 
     /**
@@ -196,6 +200,20 @@ class ABS_Settings {
                 'description' => __('Fix navigation menu disappearing on WooCommerce product pages (only enable if you experience menu visibility issues)', 'advanced-bundle-system')
             )
         );
+
+        // Menu background color
+        add_settings_field(
+            'abs_menu_fix_bg_color',
+            __('Menu Background Color', 'advanced-bundle-system'),
+            array($this, 'color_field_callback'),
+            'abs-settings',
+            'abs_menu_fix_section',
+            array(
+                'id' => 'menu_fix_bg_color',
+                'default' => '#ffffff',
+                'description' => __('Background color for the navigation menu (default: white)', 'advanced-bundle-system')
+            )
+        );
     }
 
     /**
@@ -253,6 +271,24 @@ class ABS_Settings {
                    <?php echo $checked; ?> />
             <?php _e('Enable', 'advanced-bundle-system'); ?>
         </label>
+        <?php if (!empty($args['description'])): ?>
+            <p class="description"><?php echo esc_html($args['description']); ?></p>
+        <?php endif; ?>
+        <?php
+    }
+
+    /**
+     * Color field callback
+     */
+    public function color_field_callback($args) {
+        $settings = get_option('abs_settings', array());
+        $value = isset($settings[$args['id']]) ? $settings[$args['id']] : $args['default'];
+        ?>
+        <input type="text"
+               id="abs_settings_<?php echo esc_attr($args['id']); ?>"
+               name="abs_settings[<?php echo esc_attr($args['id']); ?>]"
+               value="<?php echo esc_attr($value); ?>"
+               class="abs-color-picker" />
         <?php if (!empty($args['description'])): ?>
             <p class="description"><?php echo esc_html($args['description']); ?></p>
         <?php endif; ?>

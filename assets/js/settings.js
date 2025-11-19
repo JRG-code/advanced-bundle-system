@@ -9,6 +9,9 @@
         var $previewPanel = $('#abs-settings-preview');
         var isPreviewVisible = false;
 
+        // Initialize color picker
+        $('.abs-color-picker').wpColorPicker();
+
         // Generate/update preview when button is clicked
         $('#abs-generate-preview').on('click', function() {
             updatePreview();

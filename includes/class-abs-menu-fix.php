@@ -22,6 +22,7 @@ class ABS_Menu_Fix {
 
         // Enqueue menu fix CSS and JS
         add_action('wp_enqueue_scripts', array($this, 'enqueue_menu_fix_assets'));
+        add_action('wp_head', array($this, 'output_custom_menu_styles'), 100);
     }
 
     /**
@@ -40,6 +41,47 @@ class ABS_Menu_Fix {
             array(),
             ABS_VERSION
         );
+    }
+
+    /**
+     * Output custom menu styles
+     */
+    public function output_custom_menu_styles() {
+        // Only load on WooCommerce product pages
+        if (!is_product()) {
+            return;
+        }
+
+        // Get the custom background color
+        $settings = get_option('abs_settings', array());
+        $bg_color = isset($settings['menu_fix_bg_color']) ? $settings['menu_fix_bg_color'] : '#ffffff';
+
+        // Sanitize color
+        $bg_color = sanitize_hex_color($bg_color);
+
+        if (!$bg_color) {
+            $bg_color = '#ffffff';
+        }
+
+        // Output custom CSS
+        ?>
+        <style type="text/css" id="abs-menu-fix-custom">
+            /* Custom menu background color */
+            .site-header,
+            header.site-header,
+            #masthead,
+            .main-header,
+            #site-header,
+            header,
+            .primary-navigation,
+            .main-navigation,
+            #site-navigation,
+            .site-navigation,
+            nav.site-navigation {
+                background-color: <?php echo esc_attr($bg_color); ?> !important;
+            }
+        </style>
+        <?php
     }
 }
 
