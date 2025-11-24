@@ -127,7 +127,7 @@ class ABS_Product_Type {
     }
 
     /**
-     * Render a bundle item row
+     * Render a bundle item row (2 lines per product)
      */
     private function render_bundle_item_row($index, $item = array(), $product = null) {
         $product_id = isset($item['product_id']) ? $item['product_id'] : '';
@@ -140,7 +140,8 @@ class ABS_Product_Type {
         $max_characters = isset($item['max_characters']) ? $item['max_characters'] : 50;
         $personalization_disclaimer = isset($item['personalization_disclaimer']) ? $item['personalization_disclaimer'] : '';
         ?>
-        <tr class="abs-bundle-item-row" data-index="<?php echo esc_attr($index); ?>">
+        <!-- Row 1: Product, Price/Variation, Qty, Attributes, Personalize, Cost, Delete -->
+        <tr class="abs-bundle-item-row abs-bundle-item-row-1" data-index="<?php echo esc_attr($index); ?>">
             <td>
                 <select name="abs_bundle_items[<?php echo esc_attr($index); ?>][product_id]"
                         class="abs-product-search"
@@ -225,7 +226,19 @@ class ABS_Product_Type {
                        class="abs-personalization-cost"
                        style="width: 60px;" />
             </td>
-            <td>
+            <td rowspan="2" style="text-align: center; vertical-align: middle;">
+                <button type="button" class="button abs-remove-item" title="<?php _e('Remove', 'advanced-bundle-system'); ?>">
+                    <span class="dashicons dashicons-no-alt"></span>
+                </button>
+            </td>
+        </tr>
+
+        <!-- Row 2: Label Text, Max Chars, Disclaimer -->
+        <tr class="abs-bundle-item-row abs-bundle-item-row-2" data-index="<?php echo esc_attr($index); ?>">
+            <td colspan="3">
+                <label style="display: block; font-size: 11px; color: #666; margin-bottom: 3px;">
+                    <?php _e('Label Text:', 'advanced-bundle-system'); ?>
+                </label>
                 <input type="text"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][personalization_label]"
                        value="<?php echo esc_attr($personalization_label); ?>"
@@ -233,7 +246,10 @@ class ABS_Product_Type {
                        style="width: 100%;"
                        class="abs-personalization-label" />
             </td>
-            <td>
+            <td style="text-align: center;">
+                <label style="display: block; font-size: 11px; color: #666; margin-bottom: 3px;">
+                    <?php _e('Max:', 'advanced-bundle-system'); ?>
+                </label>
                 <input type="number"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][max_characters]"
                        value="<?php echo esc_attr($max_characters); ?>"
@@ -243,18 +259,16 @@ class ABS_Product_Type {
                        class="abs-max-characters"
                        style="width: 60px;" />
             </td>
-            <td>
+            <td colspan="2">
+                <label style="display: block; font-size: 11px; color: #666; margin-bottom: 3px;">
+                    <?php _e('Disclaimer:', 'advanced-bundle-system'); ?>
+                </label>
                 <input type="text"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][personalization_disclaimer]"
                        value="<?php echo esc_attr($personalization_disclaimer); ?>"
                        placeholder="<?php _e('e.g., 3rd image shows font style', 'advanced-bundle-system'); ?>"
                        style="width: 100%;"
                        class="abs-personalization-disclaimer" />
-            </td>
-            <td>
-                <button type="button" class="button abs-remove-item" title="<?php _e('Remove', 'advanced-bundle-system'); ?>">
-                    <span class="dashicons dashicons-no-alt"></span>
-                </button>
             </td>
         </tr>
         <?php
