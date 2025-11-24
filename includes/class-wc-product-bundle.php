@@ -97,30 +97,55 @@ class WC_Product_Bundle extends WC_Product {
      */
     public function get_regular_price($context = 'view') {
         // For bundles, regular price is the sum of all bundle items
-        $bundle_products = $this->get_bundle_products();
-        if (empty($bundle_products)) {
-            $bundle_items = $this->get_bundle_items();
-            $bundle_products = array();
-            foreach ($bundle_items as $item) {
-                $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
-                for ($i = 0; $i < $quantity; $i++) {
-                    $bundle_products[] = $item['product_id'];
+        $bundle_items = $this->get_bundle_items();
+
+        if (empty($bundle_items)) {
+            // Fallback to old format
+            $bundle_products = $this->get_bundle_products();
+            $total = 0;
+            foreach ($bundle_products as $product_id) {
+                $product = wc_get_product($product_id);
+                if ($product) {
+                    $regular = $product->get_regular_price();
+                    $price = $regular !== '' ? floatval($regular) : floatval($product->get_price());
+                    $total += $price;
                 }
+            }
+            return $total > 0 ? $total : '';
+        }
+
+        // Calculate from bundle items with variations and personalization costs
+        $total = 0;
+        $personalization_total = 0;
+
+        foreach ($bundle_items as $item) {
+            $product_id = $item['product_id'];
+            $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+            $variation_id = isset($item['variation_id']) ? intval($item['variation_id']) : 0;
+            $enable_personalization = isset($item['enable_personalization']) && $item['enable_personalization'] === 'yes';
+            $personalization_cost = isset($item['personalization_cost']) ? floatval($item['personalization_cost']) : 0;
+
+            // Use variation if specified, otherwise use main product
+            if ($variation_id > 0) {
+                $product = wc_get_product($variation_id);
+            } else {
+                $product = wc_get_product($product_id);
+            }
+
+            if ($product) {
+                // Use regular price, not sale price
+                $regular = $product->get_regular_price();
+                $price = $regular !== '' ? floatval($regular) : floatval($product->get_price());
+                $total += $price * $quantity;
+            }
+
+            // Add personalization cost if enabled
+            if ($enable_personalization && $personalization_cost > 0) {
+                $personalization_total += $personalization_cost * $quantity;
             }
         }
 
-        $total = 0;
-        foreach ($bundle_products as $product_id) {
-            $product = wc_get_product($product_id);
-            if ($product) {
-                // Use regular price, not sale price, for calculating bundle original total
-                $regular = $product->get_regular_price();
-                // If no regular price, fall back to current price
-                $price = $regular !== '' ? floatval($regular) : floatval($product->get_price());
-                $total += $price;
-            }
-        }
-        return $total > 0 ? $total : '';
+        return ($total + $personalization_total) > 0 ? ($total + $personalization_total) : '';
     }
 
     /**

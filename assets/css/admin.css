@@ -58,9 +58,18 @@
     line-height: 1.6;
 }
 
-#abs_bundle_items_table tbody tr {
-    border-bottom: 1px solid #eee;
-    min-height: 80px;
+#abs_bundle_items_table tbody tr.abs-bundle-item-row-1 {
+    border-bottom: none;
+}
+
+#abs_bundle_items_table tbody tr.abs-bundle-item-row-2 {
+    border-bottom: 2px solid #ddd;
+    background: #f9f9f9;
+}
+
+#abs_bundle_items_table tbody tr.abs-bundle-item-row-2 td {
+    padding-top: 8px;
+    padding-bottom: 12px;
 }
 
 #abs_bundle_items_table tbody tr:last-child {

@@ -28,10 +28,15 @@
                 self.addBundleItem();
             });
 
-            // Remove bundle item
+            // Remove bundle item (both rows)
             $(document).on('click', '.abs-remove-item', function(e) {
                 e.preventDefault();
-                $(this).closest('tr').remove();
+                var $row = $(this).closest('tr');
+                var index = $row.data('index');
+
+                // Remove both rows with the same index
+                $('#abs_bundle_items_tbody tr[data-index="' + index + '"]').remove();
+
                 self.updatePricingSummary();
                 self.updateBaseProductsList();
             });
