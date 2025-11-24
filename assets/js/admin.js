@@ -37,7 +37,7 @@
             });
 
             // Update pricing on changes
-            $(document).on('change', '.abs-product-search, .abs-item-quantity, .abs-variation-select', function() {
+            $(document).on('change', '.abs-product-search, .abs-item-quantity, .abs-variation-select, .abs-enable-personalization, .abs-personalization-cost', function() {
                 self.updatePricingSummary();
                 self.updateBaseProductsList();
             });
@@ -151,12 +151,16 @@
                 var productId = $(this).find('.abs-product-search').val();
                 var quantity = parseInt($(this).find('.abs-item-quantity').val()) || 1;
                 var variationId = parseInt($(this).find('.abs-variation-select').val()) || 0;
+                var enablePersonalization = $(this).find('.abs-enable-personalization').is(':checked');
+                var personalizationCost = parseFloat($(this).find('.abs-personalization-cost').val()) || 0;
 
                 if (productId) {
                     bundleItems.push({
                         product_id: productId,
                         quantity: quantity,
-                        variation_id: variationId
+                        variation_id: variationId,
+                        enable_personalization: enablePersonalization,
+                        personalization_cost: personalizationCost
                     });
                 }
             });

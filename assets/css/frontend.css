@@ -154,6 +154,12 @@
     font-size: 14px;
 }
 
+.abs-personalization-cost-label {
+    font-weight: normal;
+    color: #4caf50;
+    font-size: 13px;
+}
+
 .abs-personalization-input {
     width: 100%;
     max-width: 400px;
@@ -203,6 +209,7 @@
     font-size: 12px;
 }
 
+.abs-general-personalization,
 .abs-single-product-personalization {
     margin: 20px 0;
     padding: 20px;
@@ -211,10 +218,12 @@
     border-radius: 4px;
 }
 
+.abs-general-personalization h3,
 .abs-single-product-personalization h3 {
     margin: 0 0 15px 0;
     font-size: 18px;
     font-weight: 600;
+    color: #333;
 }
 
 /* Preview Modal */
