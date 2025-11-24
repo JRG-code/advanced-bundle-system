@@ -78,16 +78,13 @@ class ABS_Product_Type {
                 <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px);">
                     <thead>
                         <tr>
-                            <th style="width: 18%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 11%;"><?php _e('Price/Variation', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 4%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 6%;"><?php _e('Attributes', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 6%;"><?php _e('Personalize', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 6%;"><?php _e('Cost', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 12%;"><?php _e('Label Text', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 6%;"><?php _e('Max Chars', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 22%;"><?php _e('Disclaimer (optional)', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 4%;"></th>
+                            <th style="width: 28%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 22%;"><?php _e('Price/Variation', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 8%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 12%;"><?php _e('Attributes', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 12%;"><?php _e('Personalize', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 10%;"><?php _e('Cost', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 8%;"></th>
                         </tr>
                     </thead>
                     <tbody id="abs_bundle_items_tbody">
@@ -236,38 +233,29 @@ class ABS_Product_Type {
         <!-- Row 2: Label Text, Max Chars, Disclaimer -->
         <tr class="abs-bundle-item-row abs-bundle-item-row-2" data-index="<?php echo esc_attr($index); ?>">
             <td colspan="3">
-                <label style="display: block; font-size: 11px; color: #666; margin-bottom: 3px;">
-                    <?php _e('Label Text:', 'advanced-bundle-system'); ?>
-                </label>
+                <label><?php _e('Label Text:', 'advanced-bundle-system'); ?></label>
                 <input type="text"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][personalization_label]"
                        value="<?php echo esc_attr($personalization_label); ?>"
                        placeholder="<?php _e('e.g., Enter your initials:', 'advanced-bundle-system'); ?>"
-                       style="width: 100%;"
                        class="abs-personalization-label" />
             </td>
-            <td style="text-align: center;">
-                <label style="display: block; font-size: 11px; color: #666; margin-bottom: 3px;">
-                    <?php _e('Max:', 'advanced-bundle-system'); ?>
-                </label>
+            <td>
+                <label><?php _e('Max Chars:', 'advanced-bundle-system'); ?></label>
                 <input type="number"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][max_characters]"
                        value="<?php echo esc_attr($max_characters); ?>"
                        min="1"
                        max="100"
                        step="1"
-                       class="abs-max-characters"
-                       style="width: 60px;" />
+                       class="abs-max-characters" />
             </td>
             <td colspan="2">
-                <label style="display: block; font-size: 11px; color: #666; margin-bottom: 3px;">
-                    <?php _e('Disclaimer:', 'advanced-bundle-system'); ?>
-                </label>
+                <label><?php _e('Disclaimer (optional):', 'advanced-bundle-system'); ?></label>
                 <input type="text"
                        name="abs_bundle_items[<?php echo esc_attr($index); ?>][personalization_disclaimer]"
                        value="<?php echo esc_attr($personalization_disclaimer); ?>"
                        placeholder="<?php _e('e.g., 3rd image shows font style', 'advanced-bundle-system'); ?>"
-                       style="width: 100%;"
                        class="abs-personalization-disclaimer" />
             </td>
         </tr>

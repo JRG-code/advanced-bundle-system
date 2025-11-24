@@ -89,7 +89,16 @@ class WC_Product_Bundle extends WC_Product {
      */
     public function get_price($context = 'view') {
         $price = get_post_meta($this->get_id(), '_bundle_price', true);
-        return $price !== '' ? $price : parent::get_price($context);
+
+        // If bundle price is set, use it
+        if ($price !== '' && $price !== null) {
+            return $price;
+        }
+
+        // Otherwise, return the regular price (sum of items)
+        // This ensures the price is always shown in product lists
+        $regular = $this->get_regular_price($context);
+        return $regular !== '' ? $regular : parent::get_price($context);
     }
 
     /**
@@ -174,17 +183,25 @@ class WC_Product_Bundle extends WC_Product {
      */
     public function get_price_html($deprecated = '') {
         $regular_price = $this->get_regular_price();
-        $bundle_price = $this->get_price();
+        $bundle_price = get_post_meta($this->get_id(), '_bundle_price', true);
 
-        if ($bundle_price === '' || $regular_price === '') {
+        // If no items in bundle, return empty
+        if ($regular_price === '' || $regular_price === null) {
             return apply_filters('woocommerce_bundle_empty_price_html', '', $this);
         }
 
         $regular_price_num = floatval($regular_price);
+
+        // If no custom bundle price is set, show only regular price
+        if ($bundle_price === '' || $bundle_price === null) {
+            $price_html = '<span class="abs-bundle-price">' . wc_price($regular_price_num) . '</span>';
+            return apply_filters('woocommerce_get_price_html', $price_html, $this);
+        }
+
         $bundle_price_num = floatval($bundle_price);
 
-        if ($bundle_price_num < $regular_price_num) {
-            // Show discount
+        // If bundle price is less than regular, show discount
+        if ($bundle_price_num < $regular_price_num && $bundle_price_num > 0) {
             $discount_percent = (($regular_price_num - $bundle_price_num) / $regular_price_num) * 100;
             $discount_format = ABS_Settings::get_setting('discount_format', __('Save %s%%', 'advanced-bundle-system'));
 
@@ -194,7 +211,9 @@ class WC_Product_Bundle extends WC_Product {
             $price_html .= ' <span class="abs-discount-badge">' . sprintf($discount_format, number_format($discount_percent, 0)) . '</span>';
             $price_html .= '</div>';
         } else {
-            $price_html = '<span class="abs-bundle-price">' . wc_price($bundle_price_num) . '</span>';
+            // Show bundle price (or regular if bundle is higher/equal)
+            $display_price = $bundle_price_num > 0 ? $bundle_price_num : $regular_price_num;
+            $price_html = '<span class="abs-bundle-price">' . wc_price($display_price) . '</span>';
         }
 
         return apply_filters('woocommerce_get_price_html', $price_html, $this);

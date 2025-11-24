@@ -65,12 +65,12 @@ class ABS_CartFlows_Compat {
      */
     public function add_personalization_to_order_bump($product_data, $product_id) {
         // Check if product has personalization enabled
-        $enable_personalization = get_post_meta($product_id, '_enable_personalization', true);
+        $enable_personalization = get_post_meta($product_id, '_abs_enable_personalization', true);
 
         if ($enable_personalization === 'yes') {
             $product_data['has_personalization'] = true;
-            $product_data['personalization_label'] = get_post_meta($product_id, '_personalization_label', true);
-            $product_data['max_characters'] = get_post_meta($product_id, '_max_characters', true);
+            $product_data['personalization_label'] = get_post_meta($product_id, '_abs_personalization_label', true);
+            $product_data['max_characters'] = get_post_meta($product_id, '_abs_personalization_max_chars', true);
         }
 
         return $product_data;
