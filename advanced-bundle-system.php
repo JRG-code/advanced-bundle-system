@@ -133,7 +133,6 @@ class Advanced_Bundle_System {
             'includes/class-abs-cart.php',
             'includes/class-abs-stock.php',
             'includes/class-abs-personalization.php',
-            'includes/class-abs-general-personalization.php',
             'includes/class-abs-order.php',
             'includes/class-abs-inventory.php',
             'includes/class-abs-cartflows-compat.php',
