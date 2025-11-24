@@ -103,8 +103,11 @@ class ABS_Admin {
 
             $product_id = intval($item['product_id']);
             $quantity = isset($item['quantity']) && $item['quantity'] > 0 ? intval($item['quantity']) : 1;
+            $variation_id = isset($item['variation_id']) ? intval($item['variation_id']) : 0;
 
-            $product = wc_get_product($product_id);
+            // Use variation if specified, otherwise use main product
+            $product = $variation_id > 0 ? wc_get_product($variation_id) : wc_get_product($product_id);
+
             if ($product) {
                 // Use regular price for original total calculation
                 $regular = $product->get_regular_price();
