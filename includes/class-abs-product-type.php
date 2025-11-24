@@ -507,6 +507,20 @@ class ABS_Product_Type {
                 )
             ));
 
+            woocommerce_wp_checkbox(array(
+                'id' => '_abs_personalization_optional',
+                'label' => __('Make personalization optional', 'advanced-bundle-system'),
+                'description' => __('Show a toggle button so customers can opt-in/out. Cost will be added only when enabled.', 'advanced-bundle-system'),
+                'desc_tip' => true,
+            ));
+
+            woocommerce_wp_checkbox(array(
+                'id' => '_abs_show_cost_in_price',
+                'label' => __('Show cost in display price', 'advanced-bundle-system'),
+                'description' => __('Add personalization cost to product display price (or final price when toggle is used)', 'advanced-bundle-system'),
+                'desc_tip' => true,
+            ));
+
             woocommerce_wp_text_input(array(
                 'id' => '_abs_personalization_label',
                 'label' => __('Label text', 'advanced-bundle-system'),
@@ -550,6 +564,12 @@ class ABS_Product_Type {
         if ($product && $product->get_type() !== 'bundle') {
             $enable_personalization = isset($_POST['_abs_enable_personalization']) ? 'yes' : 'no';
             update_post_meta($post_id, '_abs_enable_personalization', $enable_personalization);
+
+            $personalization_optional = isset($_POST['_abs_personalization_optional']) ? 'yes' : 'no';
+            update_post_meta($post_id, '_abs_personalization_optional', $personalization_optional);
+
+            $show_cost_in_price = isset($_POST['_abs_show_cost_in_price']) ? 'yes' : 'no';
+            update_post_meta($post_id, '_abs_show_cost_in_price', $show_cost_in_price);
 
             if (isset($_POST['_abs_personalization_cost'])) {
                 update_post_meta($post_id, '_abs_personalization_cost', max(0, floatval($_POST['_abs_personalization_cost'])));

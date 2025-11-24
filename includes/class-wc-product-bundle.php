@@ -145,6 +145,25 @@ class WC_Product_Bundle extends WC_Product {
                 // Use regular price, not sale price
                 $regular = $product->get_regular_price();
                 $price = $regular !== '' ? floatval($regular) : floatval($product->get_price());
+
+                // For variable products with no specific variation selected, get minimum non-zero price
+                if ($variation_id == 0 && $product->is_type('variable')) {
+                    $min_price = 0;
+                    $variations = $product->get_available_variations();
+                    foreach ($variations as $variation_data) {
+                        $variation = wc_get_product($variation_data['variation_id']);
+                        if ($variation) {
+                            $var_regular = $variation->get_regular_price();
+                            $var_price = $var_regular !== '' ? floatval($var_regular) : floatval($variation->get_price());
+                            // Use first non-zero price as minimum, or find smaller non-zero price
+                            if ($var_price > 0 && ($min_price == 0 || $var_price < $min_price)) {
+                                $min_price = $var_price;
+                            }
+                        }
+                    }
+                    $price = $min_price > 0 ? $min_price : $price;
+                }
+
                 $total += $price * $quantity;
             }
 
