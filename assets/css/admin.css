@@ -53,12 +53,14 @@
 }
 
 #abs_bundle_items_table tbody td {
-    padding: 10px;
-    vertical-align: middle;
+    padding: 15px 10px;
+    vertical-align: top;
+    line-height: 1.6;
 }
 
 #abs_bundle_items_table tbody tr {
     border-bottom: 1px solid #eee;
+    min-height: 80px;
 }
 
 #abs_bundle_items_table tbody tr:last-child {
@@ -67,19 +69,41 @@
 
 #abs_bundle_items_table .abs-product-search {
     min-width: 250px;
+    min-height: 36px;
+}
+
+#abs_bundle_items_table .abs-variation-select {
+    min-height: 36px;
+    white-space: normal;
+    line-height: 1.4;
 }
 
 #abs_bundle_items_table input[type="number"] {
-    padding: 5px;
+    padding: 8px;
+    min-height: 36px;
 }
 
 #abs_bundle_items_table input[type="text"] {
-    padding: 5px;
+    padding: 8px;
+    min-height: 36px;
+    line-height: 1.4;
 }
 
 #abs_bundle_items_table input[type="checkbox"] {
     margin: 0;
     vertical-align: middle;
+}
+
+/* Ensure price/variation column displays properly with wrapping */
+#abs_bundle_items_table tbody td:nth-child(2) {
+    white-space: normal;
+    word-wrap: break-word;
+    min-width: 120px;
+}
+
+/* Add spacing between product name and other content in rows */
+#abs_bundle_items_table .select2-container {
+    margin-bottom: 4px;
 }
 
 #abs_bundle_items_table .abs-remove-item {

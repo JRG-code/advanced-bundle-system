@@ -94,6 +94,7 @@ class ABS_Admin {
         $bundle_price = isset($_POST['bundle_price']) ? floatval($_POST['bundle_price']) : 0;
 
         $original_total = 0;
+        $personalization_total = 0;
 
         // Calculate total based on products and quantities
         foreach ($bundle_items as $item) {
@@ -103,8 +104,13 @@ class ABS_Admin {
 
             $product_id = intval($item['product_id']);
             $quantity = isset($item['quantity']) && $item['quantity'] > 0 ? intval($item['quantity']) : 1;
+            $variation_id = isset($item['variation_id']) ? intval($item['variation_id']) : 0;
+            $enable_personalization = isset($item['enable_personalization']) ? $item['enable_personalization'] : false;
+            $personalization_cost = isset($item['personalization_cost']) ? floatval($item['personalization_cost']) : 0;
 
-            $product = wc_get_product($product_id);
+            // Use variation if specified, otherwise use main product
+            $product = $variation_id > 0 ? wc_get_product($variation_id) : wc_get_product($product_id);
+
             if ($product) {
                 // Use regular price for original total calculation
                 $regular = $product->get_regular_price();
@@ -114,20 +120,32 @@ class ABS_Admin {
                 if ($price > 0) {
                     $original_total += $price * $quantity;
                 }
+
+                // Add personalization cost if enabled
+                if ($enable_personalization && $personalization_cost > 0) {
+                    $personalization_total += $personalization_cost * $quantity;
+                }
             }
         }
 
-        $discount_percent = ABS_Product_Type::calculate_discount($original_total, $bundle_price);
+        // Add personalization costs to the original total
+        $original_total_with_personalization = $original_total + $personalization_total;
+
+        $discount_percent = ABS_Product_Type::calculate_discount($original_total_with_personalization, $bundle_price);
 
         wp_send_json_success(array(
-            'original_total' => $original_total,
-            'original_total_formatted' => wc_price($original_total),
+            'original_total' => $original_total_with_personalization,
+            'original_total_formatted' => wc_price($original_total_with_personalization),
+            'personalization_total' => $personalization_total,
+            'personalization_total_formatted' => wc_price($personalization_total),
             'bundle_price' => $bundle_price,
             'bundle_price_formatted' => wc_price($bundle_price),
             'discount_percent' => $discount_percent,
             'debug' => array(
                 'items_count' => count($bundle_items),
-                'items' => $bundle_items
+                'items' => $bundle_items,
+                'base_total' => $original_total,
+                'personalization_costs' => $personalization_total
             )
         ));
     }

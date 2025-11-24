@@ -13,6 +13,13 @@
         },
 
         bindEvents: function() {
+            var self = this;
+
+            // Personalization toggle
+            $(document).on('change', '.abs-personalization-toggle', function() {
+                self.handlePersonalizationToggle($(this));
+            });
+
             // Preview button click
             $(document).on('click', '.abs-show-preview', this.showPreview);
 
@@ -26,6 +33,33 @@
             $(document).on('click', '.abs-show-preview', function(e) {
                 e.preventDefault();
             });
+        },
+
+        handlePersonalizationToggle: function($toggle) {
+            var personalizationId = $toggle.data('personalization-id');
+            var $wrapper = $toggle.closest('.abs-personalization-fields');
+            var $field = $wrapper.find('.abs-personalization-field');
+            var $disclaimer = $wrapper.find('.abs-personalization-disclaimer');
+            var $input = $wrapper.find('.abs-personalization-input');
+            var $enabled = $wrapper.find('.abs-personalization-enabled');
+
+            if ($toggle.is(':checked')) {
+                // Show the text field and disclaimer
+                $field.slideDown(300);
+                $disclaimer.slideDown(300);
+
+                // Enable the input and update hidden field
+                $input.prop('disabled', false).focus();
+                $enabled.val('1');
+            } else {
+                // Hide the text field and disclaimer
+                $field.slideUp(300);
+                $disclaimer.slideUp(300);
+
+                // Disable the input, clear it, and update hidden field
+                $input.prop('disabled', true).val('');
+                $enabled.val('0');
+            }
         },
 
         initPreviewModal: function() {
@@ -156,7 +190,8 @@
             var isValid = true;
             var messages = [];
 
-            $('.abs-personalization-input').each(function() {
+            // Only validate enabled personalization fields
+            $('.abs-personalization-input:not([disabled])').each(function() {
                 var $input = $(this);
                 var text = $input.val();
                 var maxLength = parseInt($input.attr('maxlength')) || 50;

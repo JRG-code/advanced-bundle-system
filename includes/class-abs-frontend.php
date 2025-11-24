@@ -113,10 +113,11 @@ class ABS_Frontend {
                 // Add personalization fields if enabled for this item
                 if ($enable_personalization) {
                     $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
+                    $personalization_cost = isset($item['personalization_cost']) ? floatval($item['personalization_cost']) : 0;
                     $max_characters = isset($item['max_characters']) ? intval($item['max_characters']) : 50;
                     $disclaimer_text = isset($item['personalization_disclaimer']) ? $item['personalization_disclaimer'] : '';
 
-                    $this->display_personalization_fields($product_id, $unique_id, $personalization_label, $max_characters, $disclaimer_text);
+                    $this->display_personalization_fields($product_id, $unique_id, $personalization_label, $max_characters, $disclaimer_text, $personalization_cost);
                 }
 
                 echo '</div>';
@@ -200,7 +201,7 @@ class ABS_Frontend {
     /**
      * Display personalization fields
      */
-    private function display_personalization_fields($product_id, $unique_id, $label, $max_characters, $disclaimer_text = '') {
+    private function display_personalization_fields($product_id, $unique_id, $label, $max_characters, $disclaimer_text = '', $cost = 0) {
         $placeholder = sprintf(__('Enter text (max %d characters)', 'advanced-bundle-system'), $max_characters);
 
         // Use global setting if no custom disclaimer provided
@@ -208,8 +209,25 @@ class ABS_Frontend {
             $disclaimer_text = ABS_Settings::get_setting('personalization_disclaimer', __('This is an embroidered product - image is for visualization purposes', 'advanced-bundle-system'));
         }
         ?>
-        <div class="abs-personalization-fields">
-            <div class="abs-personalization-field">
+        <div class="abs-personalization-fields" data-personalization-id="<?php echo esc_attr($unique_id); ?>">
+            <div class="abs-personalization-toggle-wrapper">
+                <label class="abs-personalization-toggle-label">
+                    <input type="checkbox"
+                           id="abs_personalization_toggle_<?php echo $unique_id; ?>"
+                           class="abs-personalization-toggle"
+                           data-personalization-id="<?php echo esc_attr($unique_id); ?>" />
+                    <span class="abs-toggle-text">
+                        <?php _e('Add personalization', 'advanced-bundle-system'); ?>
+                        <?php if ($cost > 0): ?>
+                            <span class="abs-personalization-cost-label">
+                                (<?php printf(__('+ %s', 'advanced-bundle-system'), wc_price($cost)); ?>)
+                            </span>
+                        <?php endif; ?>
+                    </span>
+                </label>
+            </div>
+
+            <div class="abs-personalization-field" style="display: none;">
                 <label for="abs_personalization_text_<?php echo $unique_id; ?>">
                     <?php echo esc_html($label); ?>
                 </label>
@@ -217,13 +235,19 @@ class ABS_Frontend {
                        id="abs_personalization_text_<?php echo $unique_id; ?>"
                        name="abs_personalization[<?php echo $unique_id; ?>][text]"
                        data-product-id="<?php echo esc_attr($product_id); ?>"
+                       data-personalization-cost="<?php echo esc_attr($cost); ?>"
                        class="abs-personalization-input"
                        maxlength="<?php echo esc_attr($max_characters); ?>"
-                       placeholder="<?php echo esc_attr($placeholder); ?>" />
+                       placeholder="<?php echo esc_attr($placeholder); ?>"
+                       disabled />
+                <input type="hidden"
+                       name="abs_personalization[<?php echo $unique_id; ?>][enabled]"
+                       class="abs-personalization-enabled"
+                       value="0" />
             </div>
 
             <?php if (!empty($disclaimer_text)): ?>
-            <div class="abs-personalization-disclaimer">
+            <div class="abs-personalization-disclaimer" style="display: none;">
                 <small><?php echo esc_html($disclaimer_text); ?></small>
             </div>
             <?php endif; ?>
@@ -243,23 +267,25 @@ class ABS_Frontend {
         }
 
         // Check if personalization is enabled for this product
-        $enable_personalization = get_post_meta($product->get_id(), '_enable_personalization', true);
+        $enable_personalization = get_post_meta($product->get_id(), '_abs_enable_personalization', true);
         if ($enable_personalization !== 'yes') {
             return;
         }
 
         // Get personalization settings
-        $personalization_label = get_post_meta($product->get_id(), '_personalization_label', true);
+        $personalization_label = get_post_meta($product->get_id(), '_abs_personalization_label', true);
         if (empty($personalization_label)) {
             $personalization_label = __('Enter text:', 'advanced-bundle-system');
         }
 
-        $max_characters = get_post_meta($product->get_id(), '_max_characters', true);
+        $personalization_cost = floatval(get_post_meta($product->get_id(), '_abs_personalization_cost', true));
+
+        $max_characters = get_post_meta($product->get_id(), '_abs_personalization_max_chars', true);
         if (empty($max_characters)) {
             $max_characters = 50;
         }
 
-        $disclaimer_text = get_post_meta($product->get_id(), '_personalization_disclaimer', true);
+        $disclaimer_text = get_post_meta($product->get_id(), '_abs_personalization_disclaimer', true);
 
         // Display personalization heading
         $personalization_heading = ABS_Settings::get_setting('personalization_heading', __('Personalization Options:', 'advanced-bundle-system'));
@@ -268,7 +294,7 @@ class ABS_Frontend {
         echo '<h3>' . esc_html($personalization_heading) . '</h3>';
 
         // Use unique_id 0 for non-bundle products (they only have one personalization field)
-        $this->display_personalization_fields($product->get_id(), 0, $personalization_label, $max_characters, $disclaimer_text);
+        $this->display_personalization_fields($product->get_id(), 0, $personalization_label, $max_characters, $disclaimer_text, $personalization_cost);
 
         echo '</div>';
     }

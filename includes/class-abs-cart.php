@@ -11,6 +11,7 @@ class ABS_Cart {
 
     public function __construct() {
         add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 10, 3);
+        add_filter('woocommerce_add_cart_item', array($this, 'adjust_cart_item_price'), 10, 2);
         add_filter('woocommerce_get_item_data', array($this, 'display_cart_item_data'), 10, 2);
         add_action('woocommerce_checkout_create_order_line_item', array($this, 'add_order_item_meta'), 10, 4);
         add_filter('woocommerce_cart_item_name', array($this, 'display_bundle_items_in_cart'), 10, 3);
@@ -26,9 +27,14 @@ class ABS_Cart {
             $personalization_data = array();
 
             foreach ($_POST['abs_personalization'] as $unique_id => $data) {
-                if (!empty($data['text'])) {
+                // Only add if enabled is set to 1 and text is not empty
+                $enabled = isset($data['enabled']) && $data['enabled'] == '1';
+                $has_text = isset($data['text']) && !empty($data['text']);
+
+                if ($enabled && $has_text) {
                     $personalization_data[$unique_id] = array(
-                        'text' => sanitize_text_field($data['text'])
+                        'text' => sanitize_text_field($data['text']),
+                        'enabled' => true
                     );
                 }
             }
@@ -96,6 +102,73 @@ class ABS_Cart {
         }
 
         return $cart_item_data;
+    }
+
+    /**
+     * Adjust cart item price to include personalization costs
+     */
+    public function adjust_cart_item_price($cart_item, $cart_item_key) {
+        // Only proceed if personalization data exists
+        if (!isset($cart_item['abs_personalization']) || empty($cart_item['abs_personalization'])) {
+            return $cart_item;
+        }
+
+        $product = $cart_item['data'];
+        $product_id = $product->get_id();
+        $personalization_cost_total = 0;
+
+        // For bundle products
+        if ($product->get_type() === 'bundle') {
+            $bundle_items = get_post_meta($product_id, '_bundle_items', true);
+
+            if (is_array($bundle_items)) {
+                $item_counter = 0;
+
+                foreach ($bundle_items as $item) {
+                    $item_quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+                    $enable_personalization = isset($item['enable_personalization']) && $item['enable_personalization'] === 'yes';
+                    $personalization_cost = isset($item['personalization_cost']) ? floatval($item['personalization_cost']) : 0;
+
+                    // Check each instance of this product in the bundle
+                    for ($q = 0; $q < $item_quantity; $q++) {
+                        $unique_id = $item_counter++;
+
+                        // If this item has personalization text entered, add the cost
+                        if ($enable_personalization && $personalization_cost > 0) {
+                            if (isset($cart_item['abs_personalization'][$unique_id]) &&
+                                !empty($cart_item['abs_personalization'][$unique_id]['text'])) {
+                                $personalization_cost_total += $personalization_cost;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // For regular products (simple, variable, etc.)
+        else {
+            $enable_personalization = get_post_meta($product_id, '_abs_enable_personalization', true);
+            $personalization_cost = floatval(get_post_meta($product_id, '_abs_personalization_cost', true));
+
+            // Check if personalization text was entered (unique_id 0 for regular products)
+            if ($enable_personalization === 'yes' && $personalization_cost > 0) {
+                if (isset($cart_item['abs_personalization'][0]) &&
+                    !empty($cart_item['abs_personalization'][0]['text'])) {
+                    $personalization_cost_total += $personalization_cost;
+                }
+            }
+        }
+
+        // Add personalization cost to product price
+        if ($personalization_cost_total > 0) {
+            $original_price = $product->get_price();
+            $new_price = $original_price + $personalization_cost_total;
+            $product->set_price($new_price);
+
+            // Store the personalization cost for later display
+            $cart_item['abs_personalization_cost'] = $personalization_cost_total;
+        }
+
+        return $cart_item;
     }
 
     /**
