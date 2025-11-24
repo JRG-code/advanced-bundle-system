@@ -27,9 +27,14 @@ class ABS_Cart {
             $personalization_data = array();
 
             foreach ($_POST['abs_personalization'] as $unique_id => $data) {
-                if (!empty($data['text'])) {
+                // Only add if enabled is set to 1 and text is not empty
+                $enabled = isset($data['enabled']) && $data['enabled'] == '1';
+                $has_text = isset($data['text']) && !empty($data['text']);
+
+                if ($enabled && $has_text) {
                     $personalization_data[$unique_id] = array(
-                        'text' => sanitize_text_field($data['text'])
+                        'text' => sanitize_text_field($data['text']),
+                        'enabled' => true
                     );
                 }
             }
