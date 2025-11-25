@@ -27,6 +27,20 @@ class WC_Product_Bundle extends WC_Product {
     }
 
     /**
+     * Get the add to cart button text
+     */
+    public function add_to_cart_text() {
+        return apply_filters('woocommerce_product_add_to_cart_text', __('Add to cart', 'advanced-bundle-system'), $this);
+    }
+
+    /**
+     * Get the add to cart button text for the single page
+     */
+    public function single_add_to_cart_text() {
+        return apply_filters('woocommerce_product_single_add_to_cart_text', __('Add to cart', 'advanced-bundle-system'), $this);
+    }
+
+    /**
      * Check if product is purchasable
      */
     public function is_purchasable() {
