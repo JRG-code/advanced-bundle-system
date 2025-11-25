@@ -479,8 +479,19 @@ class ABS_Frontend {
             $cart_product_ids[] = $item['product_id'];
         }
 
+        // Get excluded bundles
+        $excluded_bundles = ABS_Settings::get_setting('bundle_auto_suggest_excluded', array());
+        if (!is_array($excluded_bundles)) {
+            $excluded_bundles = array();
+        }
+
         // Check each bundle to see if cart matches
         foreach ($bundles as $bundle_post) {
+            // Skip if this bundle is excluded
+            if (in_array($bundle_post->ID, $excluded_bundles)) {
+                continue;
+            }
+
             $bundle_items = get_post_meta($bundle_post->ID, '_bundle_items', true);
             if (empty($bundle_items) || !is_array($bundle_items)) {
                 continue;

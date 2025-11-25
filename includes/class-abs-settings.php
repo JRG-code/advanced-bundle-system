@@ -215,6 +215,20 @@ class ABS_Settings {
             )
         );
 
+        // Excluded bundles
+        add_settings_field(
+            'abs_bundle_auto_suggest_excluded',
+            __('Exclude Bundles', 'advanced-bundle-system'),
+            array($this, 'bundle_exclusion_field_callback'),
+            'abs-settings',
+            'abs_auto_suggest_section',
+            array(
+                'id' => 'bundle_auto_suggest_excluded',
+                'default' => array(),
+                'description' => __('Select bundles that should NOT be auto-suggested to customers. Excluded bundles will never appear in cart suggestions.', 'advanced-bundle-system')
+            )
+        );
+
         // Menu Fix Section
         add_settings_section(
             'abs_menu_fix_section',
@@ -452,6 +466,13 @@ class ABS_Settings {
             $input['promo_banner_pages'] = array();
         }
 
+        // Sanitize bundle exclusion array
+        if (isset($input['bundle_auto_suggest_excluded']) && is_array($input['bundle_auto_suggest_excluded'])) {
+            $input['bundle_auto_suggest_excluded'] = array_map('intval', $input['bundle_auto_suggest_excluded']);
+        } elseif (!isset($input['bundle_auto_suggest_excluded'])) {
+            $input['bundle_auto_suggest_excluded'] = array();
+        }
+
         return $input;
     }
 
@@ -595,6 +616,67 @@ class ABS_Settings {
 
         if (!empty($args['description'])): ?>
             <p class="description"><?php echo esc_html($args['description']); ?></p>
+        <?php endif;
+    }
+
+    /**
+     * Bundle exclusion field callback
+     */
+    public function bundle_exclusion_field_callback($args) {
+        $settings = get_option('abs_settings', array());
+        $value = isset($settings[$args['id']]) ? $settings[$args['id']] : $args['default'];
+
+        if (!is_array($value)) {
+            $value = $args['default'];
+        }
+
+        // Get all bundle products
+        $bundle_args = array(
+            'post_type' => 'product',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'tax_query' => array(
+                array(
+                    'taxonomy' => 'product_type',
+                    'field' => 'slug',
+                    'terms' => 'bundle'
+                )
+            )
+        );
+
+        $bundles = get_posts($bundle_args);
+
+        if (empty($bundles)) {
+            echo '<p style="color: #999; font-style: italic;">' . __('No bundle products found. Create bundle products first.', 'advanced-bundle-system') . '</p>';
+            return;
+        }
+
+        echo '<div style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #fff;">';
+
+        foreach ($bundles as $bundle) {
+            $bundle_id = $bundle->ID;
+            $checked = in_array($bundle_id, $value) ? 'checked' : '';
+            $bundle_product = wc_get_product($bundle_id);
+            $price = $bundle_product ? wc_price($bundle_product->get_price()) : '';
+            ?>
+            <label style="display: block; margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #f0f0f0;">
+                <input type="checkbox"
+                       name="abs_settings[<?php echo esc_attr($args['id']); ?>][]"
+                       value="<?php echo esc_attr($bundle_id); ?>"
+                       <?php echo $checked; ?> />
+                <strong><?php echo esc_html($bundle->post_title); ?></strong>
+                <span style="color: #999; font-size: 12px;">
+                    (#<?php echo esc_html($bundle_id); ?><?php echo $price ? ' - ' . $price : ''; ?>)
+                </span>
+            </label>
+            <?php
+        }
+
+        echo '</div>';
+
+        if (!empty($args['description'])): ?>
+            <p class="description" style="margin-top: 10px;"><?php echo esc_html($args['description']); ?></p>
         <?php endif;
     }
 
