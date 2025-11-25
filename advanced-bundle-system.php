@@ -157,6 +157,7 @@ class Advanced_Bundle_System {
         add_action('init', array($this, 'load_textdomain'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
+        add_filter('woocommerce_locate_template', array($this, 'locate_template'), 10, 3);
     }
 
     /**
@@ -221,6 +222,28 @@ class Advanced_Bundle_System {
                 wp_enqueue_script('abs-admin', ABS_PLUGIN_URL . 'assets/js/admin.js', array('jquery'), ABS_VERSION, true);
             }
         }
+    }
+
+    /**
+     * Locate template files from our plugin
+     */
+    public function locate_template($template, $template_name, $template_path) {
+        // Set default template path
+        if (!$template_path) {
+            $template_path = 'woocommerce/';
+        }
+
+        // Set plugin template path
+        $plugin_template_path = ABS_PLUGIN_DIR . 'templates/';
+
+        // Check if template exists in our plugin
+        $plugin_template = $plugin_template_path . $template_name;
+
+        if (file_exists($plugin_template)) {
+            $template = $plugin_template;
+        }
+
+        return $template;
     }
 }
 
