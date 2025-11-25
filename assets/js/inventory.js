@@ -90,6 +90,45 @@
                 }
             });
 
+            // Price input change detection
+            $(document).on('input', '.abs-price-input', function() {
+                var $input = $(this);
+                var $row = $input.closest('tr');
+                var $saveBtn = $row.find('.abs-save-price');
+                var original = $input.data('original');
+                var current = $input.val();
+
+                if (current != original) {
+                    $input.addClass('abs-modified');
+                    $saveBtn.show();
+                } else {
+                    $input.removeClass('abs-modified');
+                    $saveBtn.hide();
+                }
+            });
+
+            // Save price button
+            $(document).on('click', '.abs-save-price', function(e) {
+                e.preventDefault();
+                var $btn = $(this);
+                var $row = $btn.closest('tr');
+                var $input = $row.find('.abs-price-input');
+                var $feedback = $row.find('.abs-price-feedback');
+                var productId = $row.data('product-id');
+                var productType = $row.data('product-type') || '';
+                var price = $input.val();
+
+                self.savePrice(productId, price, productType, $btn, $input, $feedback);
+            });
+
+            // Enter key to save price
+            $(document).on('keypress', '.abs-price-input', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $(this).closest('tr').find('.abs-save-price').click();
+                }
+            });
+
             // Filter functionality
             $('#abs-inventory-filter').on('change', function() {
                 self.filterTable($(this).val());
@@ -181,6 +220,57 @@
                         // Success!
                         $feedback.text(absInventory.strings.saved).removeClass('abs-saving abs-error').addClass('abs-saved');
                         $input.removeClass('abs-modified').data('original', sku);
+                        $btn.hide();
+
+                        // Clear feedback after 3 seconds
+                        setTimeout(function() {
+                            $feedback.text('').removeClass('abs-saved');
+                        }, 3000);
+                    } else {
+                        // Error - show the error message from server
+                        var errorMsg = response.data && response.data.message ? response.data.message : absInventory.strings.error;
+                        $feedback.text(errorMsg).removeClass('abs-saving abs-saved').addClass('abs-error');
+
+                        // Clear error after 5 seconds
+                        setTimeout(function() {
+                            $feedback.text('').removeClass('abs-error');
+                        }, 5000);
+                    }
+
+                    $btn.prop('disabled', false).text('Save');
+                },
+                error: function() {
+                    $feedback.text(absInventory.strings.error).removeClass('abs-saving abs-saved').addClass('abs-error');
+                    $btn.prop('disabled', false).text('Save');
+
+                    // Clear error after 5 seconds
+                    setTimeout(function() {
+                        $feedback.text('').removeClass('abs-error');
+                    }, 5000);
+                }
+            });
+        },
+
+        savePrice: function(productId, price, productType, $btn, $input, $feedback) {
+            // Show saving state
+            $btn.prop('disabled', true).text(absInventory.strings.saving);
+            $feedback.text(absInventory.strings.saving).removeClass('abs-saved abs-error').addClass('abs-saving');
+
+            $.ajax({
+                url: absInventory.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'abs_update_price',
+                    nonce: absInventory.nonce,
+                    product_id: productId,
+                    product_type: productType,
+                    price: price
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Success!
+                        $feedback.text(absInventory.strings.saved).removeClass('abs-saving abs-error').addClass('abs-saved');
+                        $input.removeClass('abs-modified').data('original', price);
                         $btn.hide();
 
                         // Clear feedback after 3 seconds

@@ -64,19 +64,23 @@
 
 /* Column widths */
 .abs-col-product {
-    width: 22%;
+    width: 20%;
 }
 
 .abs-col-variation {
-    width: 18%;
+    width: 16%;
 }
 
 .abs-col-sku {
-    width: 18%;
+    width: 14%;
+}
+
+.abs-col-price {
+    width: 12%;
 }
 
 .abs-col-stock {
-    width: 18%;
+    width: 14%;
 }
 
 .abs-col-used {
@@ -159,6 +163,58 @@
 }
 
 .abs-sku-feedback.abs-error {
+    color: #f44336;
+}
+
+/* Price column */
+.abs-col-price {
+    font-family: monospace;
+    color: #666;
+    font-size: 13px;
+}
+
+.abs-price-input {
+    width: 100px;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: monospace;
+}
+
+.abs-price-input:focus {
+    border-color: #2196f3;
+    outline: none;
+    box-shadow: 0 0 0 1px #2196f3;
+}
+
+.abs-price-input.abs-modified {
+    border-color: #ff9800;
+    background: #fff8e1;
+}
+
+.abs-save-price {
+    padding: 4px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-left: 4px;
+}
+
+.abs-price-feedback {
+    margin-left: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.abs-price-feedback.abs-saving {
+    color: #2196f3;
+}
+
+.abs-price-feedback.abs-saved {
+    color: #4caf50;
+}
+
+.abs-price-feedback.abs-error {
     color: #f44336;
 }
 
@@ -390,6 +446,7 @@
     .abs-col-product,
     .abs-col-variation,
     .abs-col-sku,
+    .abs-col-price,
     .abs-col-stock,
     .abs-col-used {
         width: auto;
@@ -397,6 +454,10 @@
 
     .abs-stock-input {
         width: 60px;
+    }
+
+    .abs-price-input {
+        width: 80px;
     }
 
     .abs-variation-indent {
