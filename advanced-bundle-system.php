@@ -241,17 +241,14 @@ class Advanced_Bundle_System {
 
             // Then check our plugin template
             $plugin_template = ABS_PLUGIN_DIR . 'templates/' . $template_name;
-            if (file_exists($plugin_template)) {
+            if (file_exists($plugin_template) && is_readable($plugin_template)) {
                 return $plugin_template;
             }
 
-            // Fallback to simple product template
-            $simple_template = locate_template(array(
-                'woocommerce/single-product/add-to-cart/simple.php',
-            ));
-
-            if ($simple_template) {
-                return $simple_template;
+            // Fallback to WooCommerce's simple product template
+            $wc_template = WC()->plugin_path() . '/templates/single-product/add-to-cart/simple.php';
+            if (file_exists($wc_template)) {
+                return $wc_template;
             }
         }
 
