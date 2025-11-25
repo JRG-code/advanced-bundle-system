@@ -13,6 +13,7 @@ class ABS_Frontend {
         add_action('woocommerce_before_add_to_cart_button', array($this, 'display_bundle_products'));
         add_action('woocommerce_before_add_to_cart_button', array($this, 'display_general_personalization'), 20);
         add_filter('woocommerce_get_price_html', array($this, 'display_bundle_pricing'), 10, 2);
+        add_filter('woocommerce_get_price_html', array($this, 'add_personalization_to_price'), 15, 2);
     }
 
     /**
@@ -117,7 +118,8 @@ class ABS_Frontend {
                     $max_characters = isset($item['max_characters']) ? intval($item['max_characters']) : 50;
                     $disclaimer_text = isset($item['personalization_disclaimer']) ? $item['personalization_disclaimer'] : '';
 
-                    $this->display_personalization_fields($product_id, $unique_id, $personalization_label, $max_characters, $disclaimer_text, $personalization_cost);
+                    // Bundle personalization is always optional (with toggle)
+                    $this->display_personalization_fields($product_id, $unique_id, $personalization_label, $max_characters, $disclaimer_text, $personalization_cost, 'yes');
                 }
 
                 echo '</div>';
@@ -201,15 +203,18 @@ class ABS_Frontend {
     /**
      * Display personalization fields
      */
-    private function display_personalization_fields($product_id, $unique_id, $label, $max_characters, $disclaimer_text = '', $cost = 0) {
+    private function display_personalization_fields($product_id, $unique_id, $label, $max_characters, $disclaimer_text = '', $cost = 0, $optional = 'yes') {
         $placeholder = sprintf(__('Enter text (max %d characters)', 'advanced-bundle-system'), $max_characters);
 
         // Use global setting if no custom disclaimer provided
         if (empty($disclaimer_text)) {
             $disclaimer_text = ABS_Settings::get_setting('personalization_disclaimer', __('This is an embroidered product - image is for visualization purposes', 'advanced-bundle-system'));
         }
+
+        $is_optional = ($optional === 'yes');
         ?>
         <div class="abs-personalization-fields" data-personalization-id="<?php echo esc_attr($unique_id); ?>">
+            <?php if ($is_optional): ?>
             <div class="abs-personalization-toggle-wrapper">
                 <label class="abs-personalization-toggle-label">
                     <input type="checkbox"
@@ -226,10 +231,16 @@ class ABS_Frontend {
                     </span>
                 </label>
             </div>
+            <?php endif; ?>
 
-            <div class="abs-personalization-field" style="display: none;">
+            <div class="abs-personalization-field" style="<?php echo $is_optional ? 'display: none;' : ''; ?>">
                 <label for="abs_personalization_text_<?php echo $unique_id; ?>">
                     <?php echo esc_html($label); ?>
+                    <?php if (!$is_optional && $cost > 0): ?>
+                        <span class="abs-personalization-cost-label">
+                            (<?php printf(__('+ %s', 'advanced-bundle-system'), wc_price($cost)); ?>)
+                        </span>
+                    <?php endif; ?>
                 </label>
                 <input type="text"
                        id="abs_personalization_text_<?php echo $unique_id; ?>"
@@ -239,15 +250,15 @@ class ABS_Frontend {
                        class="abs-personalization-input"
                        maxlength="<?php echo esc_attr($max_characters); ?>"
                        placeholder="<?php echo esc_attr($placeholder); ?>"
-                       disabled />
+                       <?php echo $is_optional ? 'disabled' : ''; ?> />
                 <input type="hidden"
                        name="abs_personalization[<?php echo $unique_id; ?>][enabled]"
                        class="abs-personalization-enabled"
-                       value="0" />
+                       value="<?php echo $is_optional ? '0' : '1'; ?>" />
             </div>
 
             <?php if (!empty($disclaimer_text)): ?>
-            <div class="abs-personalization-disclaimer" style="display: none;">
+            <div class="abs-personalization-disclaimer" style="<?php echo $is_optional ? 'display: none;' : ''; ?>">
                 <small><?php echo esc_html($disclaimer_text); ?></small>
             </div>
             <?php endif; ?>
@@ -279,6 +290,7 @@ class ABS_Frontend {
         }
 
         $personalization_cost = floatval(get_post_meta($product->get_id(), '_abs_personalization_cost', true));
+        $personalization_optional = get_post_meta($product->get_id(), '_abs_personalization_optional', true);
 
         $max_characters = get_post_meta($product->get_id(), '_abs_personalization_max_chars', true);
         if (empty($max_characters)) {
@@ -294,7 +306,8 @@ class ABS_Frontend {
         echo '<h3>' . esc_html($personalization_heading) . '</h3>';
 
         // Use unique_id 0 for non-bundle products (they only have one personalization field)
-        $this->display_personalization_fields($product->get_id(), 0, $personalization_label, $max_characters, $disclaimer_text, $personalization_cost);
+        // Pass the optional flag to determine if toggle should be shown
+        $this->display_personalization_fields($product->get_id(), 0, $personalization_label, $max_characters, $disclaimer_text, $personalization_cost, $personalization_optional);
 
         echo '</div>';
     }
@@ -365,6 +378,61 @@ class ABS_Frontend {
         $pricing_html .= '</div>';
 
         return $pricing_html;
+    }
+
+    /**
+     * Add personalization cost to price display for regular products
+     */
+    public function add_personalization_to_price($price_html, $product) {
+        // Skip for bundle products (they have their own pricing display)
+        if (!$product || $product->get_type() === 'bundle') {
+            return $price_html;
+        }
+
+        // Check if personalization is enabled
+        $enable_personalization = get_post_meta($product->get_id(), '_abs_enable_personalization', true);
+        if ($enable_personalization !== 'yes') {
+            return $price_html;
+        }
+
+        // If "paid by customer" is enabled, don't show cost in display price
+        $paid_by_customer = get_post_meta($product->get_id(), '_abs_personalization_paid_by_customer', true);
+        if ($paid_by_customer === 'yes') {
+            return $price_html; // Cost will be added at checkout, not shown in price
+        }
+
+        // Check if cost should be shown in price
+        $show_cost_in_price = get_post_meta($product->get_id(), '_abs_show_cost_in_price', true);
+        if ($show_cost_in_price !== 'yes') {
+            return $price_html;
+        }
+
+        $personalization_cost = floatval(get_post_meta($product->get_id(), '_abs_personalization_cost', true));
+        $personalization_optional = get_post_meta($product->get_id(), '_abs_personalization_optional', true);
+
+        if ($personalization_cost <= 0) {
+            return $price_html;
+        }
+
+        // If personalization is optional (toggle), show "from" price
+        if ($personalization_optional === 'yes') {
+            // Show original price as starting point
+            $price_html .= '<small class="abs-personalization-price-note" style="display: block; margin-top: 5px; font-size: 0.85em; color: #666;">';
+            $price_html .= sprintf(__('+ %s for personalization', 'advanced-bundle-system'), wc_price($personalization_cost));
+            $price_html .= '</small>';
+        } else {
+            // Personalization is always included, add cost to display price
+            $original_price = $product->get_price();
+            if ($original_price) {
+                $price_with_personalization = floatval($original_price) + $personalization_cost;
+                $price_html = '<span class="price">' . wc_price($price_with_personalization) . '</span>';
+                $price_html .= '<small class="abs-personalization-included" style="display: block; margin-top: 5px; font-size: 0.85em; color: #666;">';
+                $price_html .= __('(includes personalization)', 'advanced-bundle-system');
+                $price_html .= '</small>';
+            }
+        }
+
+        return $price_html;
     }
 }
 
