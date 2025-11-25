@@ -157,6 +157,7 @@ class Advanced_Bundle_System {
         add_action('init', array($this, 'load_textdomain'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
+        add_filter('woocommerce_locate_template', array($this, 'locate_template'), 10, 3);
     }
 
     /**
@@ -221,6 +222,40 @@ class Advanced_Bundle_System {
                 wp_enqueue_script('abs-admin', ABS_PLUGIN_URL . 'assets/js/admin.js', array('jquery'), ABS_VERSION, true);
             }
         }
+    }
+
+    /**
+     * Locate template files from our plugin
+     */
+    public function locate_template($template, $template_name, $template_path) {
+        // Check for bundle add-to-cart template
+        if ($template_name === 'single-product/add-to-cart/bundle.php') {
+            // First, check if theme has an override
+            $theme_template = locate_template(array(
+                'woocommerce/single-product/add-to-cart/bundle.php',
+            ));
+
+            if ($theme_template) {
+                return $theme_template;
+            }
+
+            // Then check our plugin template
+            $plugin_template = ABS_PLUGIN_DIR . 'templates/' . $template_name;
+            if (file_exists($plugin_template)) {
+                return $plugin_template;
+            }
+
+            // Fallback to simple product template
+            $simple_template = locate_template(array(
+                'woocommerce/single-product/add-to-cart/simple.php',
+            ));
+
+            if ($simple_template) {
+                return $simple_template;
+            }
+        }
+
+        return $template;
     }
 }
 
