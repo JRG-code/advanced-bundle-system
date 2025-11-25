@@ -389,16 +389,26 @@ class ABS_Frontend {
             return $price_html;
         }
 
-        // Check if personalization is enabled and should be shown in price
+        // Check if personalization is enabled
         $enable_personalization = get_post_meta($product->get_id(), '_abs_enable_personalization', true);
-        $show_cost_in_price = get_post_meta($product->get_id(), '_abs_show_cost_in_price', true);
-        $personalization_optional = get_post_meta($product->get_id(), '_abs_personalization_optional', true);
+        if ($enable_personalization !== 'yes') {
+            return $price_html;
+        }
 
-        if ($enable_personalization !== 'yes' || $show_cost_in_price !== 'yes') {
+        // If "paid by customer" is enabled, don't show cost in display price
+        $paid_by_customer = get_post_meta($product->get_id(), '_abs_personalization_paid_by_customer', true);
+        if ($paid_by_customer === 'yes') {
+            return $price_html; // Cost will be added at checkout, not shown in price
+        }
+
+        // Check if cost should be shown in price
+        $show_cost_in_price = get_post_meta($product->get_id(), '_abs_show_cost_in_price', true);
+        if ($show_cost_in_price !== 'yes') {
             return $price_html;
         }
 
         $personalization_cost = floatval(get_post_meta($product->get_id(), '_abs_personalization_cost', true));
+        $personalization_optional = get_post_meta($product->get_id(), '_abs_personalization_optional', true);
 
         if ($personalization_cost <= 0) {
             return $price_html;
