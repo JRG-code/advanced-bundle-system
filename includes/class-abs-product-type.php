@@ -78,13 +78,10 @@ class ABS_Product_Type {
                 <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px);">
                     <thead>
                         <tr>
-                            <th style="width: 28%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 22%;"><?php _e('Price/Variation', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 8%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 12%;"><?php _e('Attributes', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 12%;"><?php _e('Personalize', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 10%;"><?php _e('Cost', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 8%;"></th>
+                            <th style="width: 40%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 35%;"><?php _e('Price/Variation', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 15%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 10%;"></th>
                         </tr>
                     </thead>
                     <tbody id="abs_bundle_items_tbody">
@@ -116,6 +113,100 @@ class ABS_Product_Type {
             </div>
         </div>
 
+        <!-- Product Personalization for Bundles -->
+        <div class="options_group show_if_bundle">
+            <h4 style="padding: 0 12px; margin: 12px 0 8px;"><?php _e('Product Personalization', 'advanced-bundle-system'); ?></h4>
+
+            <?php
+            woocommerce_wp_checkbox(array(
+                'id' => '_abs_bundle_enable_personalization',
+                'label' => __('Enable personalization', 'advanced-bundle-system'),
+                'description' => __('Allow customers to add personalized text to this bundle', 'advanced-bundle-system'),
+                'desc_tip' => true,
+            ));
+            ?>
+
+            <div id="abs_bundle_personalization_options" style="<?php echo (get_post_meta($post->ID, '_abs_bundle_enable_personalization', true) === 'yes') ? '' : 'display: none;'; ?>">
+                <?php
+                woocommerce_wp_text_input(array(
+                    'id' => '_abs_bundle_personalization_cost',
+                    'label' => __('Personalization cost', 'advanced-bundle-system') . ' (' . get_woocommerce_currency_symbol() . ')',
+                    'desc_tip' => 'true',
+                    'description' => __('Extra cost for personalization (e.g., 3 for 3€). Leave 0 for free personalization.', 'advanced-bundle-system'),
+                    'type' => 'number',
+                    'custom_attributes' => array(
+                        'step' => '0.01',
+                        'min' => '0'
+                    )
+                ));
+
+                woocommerce_wp_checkbox(array(
+                    'id' => '_abs_bundle_personalization_paid_by_customer',
+                    'label' => __('Paid by customer', 'advanced-bundle-system'),
+                    'description' => __('Cost is added at checkout but NOT shown in display price. Payment processor receives full amount.', 'advanced-bundle-system'),
+                    'desc_tip' => true,
+                ));
+
+                woocommerce_wp_checkbox(array(
+                    'id' => '_abs_bundle_personalization_optional',
+                    'label' => __('Make personalization optional', 'advanced-bundle-system'),
+                    'description' => __('Show a toggle button so customers can opt-in/out. Cost will be added only when enabled.', 'advanced-bundle-system'),
+                    'desc_tip' => true,
+                ));
+
+                woocommerce_wp_checkbox(array(
+                    'id' => '_abs_bundle_show_cost_in_price',
+                    'label' => __('Show cost in display price', 'advanced-bundle-system'),
+                    'description' => __('Add personalization cost to product display price (or final price when toggle is used)', 'advanced-bundle-system'),
+                    'desc_tip' => true,
+                ));
+
+                woocommerce_wp_text_input(array(
+                    'id' => '_abs_bundle_personalization_label',
+                    'label' => __('Label text', 'advanced-bundle-system'),
+                    'desc_tip' => 'true',
+                    'description' => __('Text shown to customer (e.g., "Enter your initials:")', 'advanced-bundle-system'),
+                    'placeholder' => __('Enter your text:', 'advanced-bundle-system')
+                ));
+
+                woocommerce_wp_text_input(array(
+                    'id' => '_abs_bundle_personalization_max_chars',
+                    'label' => __('Max characters', 'advanced-bundle-system'),
+                    'desc_tip' => 'true',
+                    'description' => __('Maximum number of characters allowed', 'advanced-bundle-system'),
+                    'type' => 'number',
+                    'custom_attributes' => array(
+                        'step' => '1',
+                        'min' => '1',
+                        'max' => '100'
+                    ),
+                    'value' => get_post_meta($post->ID, '_abs_bundle_personalization_max_chars', true) ?: 50
+                ));
+
+                woocommerce_wp_textarea_input(array(
+                    'id' => '_abs_bundle_personalization_disclaimer',
+                    'label' => __('Disclaimer', 'advanced-bundle-system'),
+                    'desc_tip' => 'true',
+                    'description' => __('Optional disclaimer text (e.g., "3rd image shows font style")', 'advanced-bundle-system'),
+                    'placeholder' => __('Optional disclaimer...', 'advanced-bundle-system')
+                ));
+                ?>
+            </div>
+
+            <script type="text/javascript">
+                jQuery(function($) {
+                    // Toggle personalization options when checkbox is changed
+                    $('#_abs_bundle_enable_personalization').on('change', function() {
+                        if ($(this).is(':checked')) {
+                            $('#abs_bundle_personalization_options').slideDown();
+                        } else {
+                            $('#abs_bundle_personalization_options').slideUp();
+                        }
+                    });
+                });
+            </script>
+        </div>
+
         <!-- Hidden template row -->
         <script type="text/html" id="abs_bundle_item_row_template">
             <?php $this->render_bundle_item_row('{{INDEX}}', array(), null); ?>
@@ -124,22 +215,15 @@ class ABS_Product_Type {
     }
 
     /**
-     * Render a bundle item row (2 lines per product)
+     * Render a bundle item row (single line)
      */
     private function render_bundle_item_row($index, $item = array(), $product = null) {
         $product_id = isset($item['product_id']) ? $item['product_id'] : '';
         $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
         $variation_id = isset($item['variation_id']) ? $item['variation_id'] : 0;
-        $ask_attributes = isset($item['ask_attributes']) ? $item['ask_attributes'] : 'no';
-        $enable_personalization = isset($item['enable_personalization']) ? $item['enable_personalization'] : 'no';
-        $personalization_cost = isset($item['personalization_cost']) ? $item['personalization_cost'] : 0;
-        $paid_by_customer = isset($item['paid_by_customer']) ? $item['paid_by_customer'] : 'no';
-        $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
-        $max_characters = isset($item['max_characters']) ? $item['max_characters'] : 50;
-        $personalization_disclaimer = isset($item['personalization_disclaimer']) ? $item['personalization_disclaimer'] : '';
         ?>
-        <!-- Row 1: Product, Price/Variation, Qty, Attributes, Personalize, Cost, Delete -->
-        <tr class="abs-bundle-item-row abs-bundle-item-row-1" data-index="<?php echo esc_attr($index); ?>">
+        <!-- Single row: Product, Price/Variation, Qty, Delete -->
+        <tr class="abs-bundle-item-row" data-index="<?php echo esc_attr($index); ?>">
             <td>
                 <select name="abs_bundle_items[<?php echo esc_attr($index); ?>][product_id]"
                         class="abs-product-search"
@@ -196,76 +280,12 @@ class ABS_Product_Type {
                        min="1"
                        step="1"
                        class="abs-item-quantity"
-                       style="width: 50px;" />
-            </td>
-            <td style="text-align: center;">
-                <input type="checkbox"
-                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][ask_attributes]"
-                       value="yes"
-                       class="abs-ask-attributes"
-                       title="<?php _e('Ask customer to select attributes (size, color, etc.) for each item', 'advanced-bundle-system'); ?>"
-                       <?php checked($ask_attributes, 'yes'); ?> />
-            </td>
-            <td style="text-align: center;">
-                <input type="checkbox"
-                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][enable_personalization]"
-                       value="yes"
-                       class="abs-enable-personalization"
-                       <?php checked($enable_personalization, 'yes'); ?> />
-            </td>
-            <td style="text-align: center;">
-                <input type="number"
-                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][personalization_cost]"
-                       value="<?php echo esc_attr($personalization_cost); ?>"
-                       min="0"
-                       step="0.01"
-                       placeholder="0"
-                       title="<?php _e('Extra cost for personalization (e.g., 3 for 3€)', 'advanced-bundle-system'); ?>"
-                       class="abs-personalization-cost"
                        style="width: 60px;" />
             </td>
-            <td rowspan="2" style="text-align: center; vertical-align: middle;">
+            <td style="text-align: center;">
                 <button type="button" class="button abs-remove-item" title="<?php _e('Remove', 'advanced-bundle-system'); ?>">
                     <span class="dashicons dashicons-no-alt"></span>
                 </button>
-            </td>
-        </tr>
-
-        <!-- Row 2: Label Text, Max Chars, Disclaimer, Paid by Customer -->
-        <tr class="abs-bundle-item-row abs-bundle-item-row-2" data-index="<?php echo esc_attr($index); ?>">
-            <td colspan="2">
-                <label><?php _e('Label Text:', 'advanced-bundle-system'); ?></label>
-                <input type="text"
-                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][personalization_label]"
-                       value="<?php echo esc_attr($personalization_label); ?>"
-                       placeholder="<?php _e('e.g., Enter your initials:', 'advanced-bundle-system'); ?>"
-                       class="abs-personalization-label" />
-            </td>
-            <td>
-                <label><?php _e('Max Chars:', 'advanced-bundle-system'); ?></label>
-                <input type="number"
-                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][max_characters]"
-                       value="<?php echo esc_attr($max_characters); ?>"
-                       min="1"
-                       max="100"
-                       step="1"
-                       class="abs-max-characters" />
-            </td>
-            <td colspan="2">
-                <label><?php _e('Disclaimer (optional):', 'advanced-bundle-system'); ?></label>
-                <input type="text"
-                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][personalization_disclaimer]"
-                       value="<?php echo esc_attr($personalization_disclaimer); ?>"
-                       placeholder="<?php _e('e.g., 3rd image shows font style', 'advanced-bundle-system'); ?>"
-                       class="abs-personalization-disclaimer" />
-            </td>
-            <td style="text-align: center;">
-                <label style="display: block;"><?php _e('Paid by Customer:', 'advanced-bundle-system'); ?></label>
-                <input type="checkbox"
-                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][paid_by_customer]"
-                       value="yes"
-                       title="<?php _e('Cost added at checkout, not shown in price', 'advanced-bundle-system'); ?>"
-                       <?php checked($paid_by_customer, 'yes'); ?> />
             </td>
         </tr>
         <?php
@@ -371,14 +391,7 @@ class ABS_Product_Type {
                     $bundle_items[] = array(
                         'product_id' => intval($item['product_id']),
                         'quantity' => isset($item['quantity']) ? max(1, intval($item['quantity'])) : 1,
-                        'variation_id' => isset($item['variation_id']) ? intval($item['variation_id']) : 0,
-                        'ask_attributes' => isset($item['ask_attributes']) ? 'yes' : 'no',
-                        'enable_personalization' => isset($item['enable_personalization']) ? 'yes' : 'no',
-                        'personalization_cost' => isset($item['personalization_cost']) ? max(0, floatval($item['personalization_cost'])) : 0,
-                        'paid_by_customer' => isset($item['paid_by_customer']) ? 'yes' : 'no',
-                        'personalization_label' => isset($item['personalization_label']) ? sanitize_text_field($item['personalization_label']) : __('Enter text:', 'advanced-bundle-system'),
-                        'max_characters' => isset($item['max_characters']) ? max(1, min(100, intval($item['max_characters']))) : 50,
-                        'personalization_disclaimer' => isset($item['personalization_disclaimer']) ? sanitize_text_field($item['personalization_disclaimer']) : ''
+                        'variation_id' => isset($item['variation_id']) ? intval($item['variation_id']) : 0
                     );
                 }
             }
@@ -402,6 +415,38 @@ class ABS_Product_Type {
             $bundle_price = floatval($_POST['_bundle_price']);
             update_post_meta($post_id, '_bundle_price', $bundle_price);
             update_post_meta($post_id, '_price', $bundle_price);
+        }
+
+        // Save bundle personalization settings
+        $product = wc_get_product($post_id);
+        if ($product && $product->get_type() === 'bundle') {
+            $enable_personalization = isset($_POST['_abs_bundle_enable_personalization']) ? 'yes' : 'no';
+            update_post_meta($post_id, '_abs_bundle_enable_personalization', $enable_personalization);
+
+            $paid_by_customer = isset($_POST['_abs_bundle_personalization_paid_by_customer']) ? 'yes' : 'no';
+            update_post_meta($post_id, '_abs_bundle_personalization_paid_by_customer', $paid_by_customer);
+
+            $personalization_optional = isset($_POST['_abs_bundle_personalization_optional']) ? 'yes' : 'no';
+            update_post_meta($post_id, '_abs_bundle_personalization_optional', $personalization_optional);
+
+            $show_cost_in_price = isset($_POST['_abs_bundle_show_cost_in_price']) ? 'yes' : 'no';
+            update_post_meta($post_id, '_abs_bundle_show_cost_in_price', $show_cost_in_price);
+
+            if (isset($_POST['_abs_bundle_personalization_cost'])) {
+                update_post_meta($post_id, '_abs_bundle_personalization_cost', max(0, floatval($_POST['_abs_bundle_personalization_cost'])));
+            }
+
+            if (isset($_POST['_abs_bundle_personalization_label'])) {
+                update_post_meta($post_id, '_abs_bundle_personalization_label', sanitize_text_field($_POST['_abs_bundle_personalization_label']));
+            }
+
+            if (isset($_POST['_abs_bundle_personalization_max_chars'])) {
+                update_post_meta($post_id, '_abs_bundle_personalization_max_chars', max(1, min(100, intval($_POST['_abs_bundle_personalization_max_chars']))));
+            }
+
+            if (isset($_POST['_abs_bundle_personalization_disclaimer'])) {
+                update_post_meta($post_id, '_abs_bundle_personalization_disclaimer', sanitize_textarea_field($_POST['_abs_bundle_personalization_disclaimer']));
+            }
         }
     }
 
