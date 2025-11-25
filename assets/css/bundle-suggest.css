@@ -1,0 +1,75 @@
+/**
+ * Bundle Auto-Suggest Styles
+ */
+
+.abs-bundle-suggestion {
+    background: #f0f7ff;
+    border-left: 4px solid #2c5aa0;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.abs-bundle-suggestion-message {
+    font-size: 15px;
+    font-weight: 500;
+    color: #2c5aa0;
+    display: block;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.abs-bundle-suggestion-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.abs-bundle-suggestion-actions .button {
+    margin: 0;
+    padding: 10px 20px;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.abs-bundle-suggestion-actions .button-primary {
+    background-color: #2c5aa0;
+    border-color: #2c5aa0;
+}
+
+.abs-bundle-suggestion-actions .button-primary:hover {
+    background-color: #1e3f70;
+    border-color: #1e3f70;
+}
+
+.abs-bundle-suggestion-actions .abs-dismiss-suggestion {
+    background-color: #f5f5f5;
+    color: #666;
+}
+
+.abs-bundle-suggestion-actions .abs-dismiss-suggestion:hover {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .abs-bundle-suggestion {
+        padding: 15px;
+    }
+
+    .abs-bundle-suggestion-message {
+        font-size: 14px;
+    }
+
+    .abs-bundle-suggestion-actions {
+        flex-direction: column;
+    }
+
+    .abs-bundle-suggestion-actions .button {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+}

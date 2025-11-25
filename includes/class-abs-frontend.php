@@ -14,6 +14,14 @@ class ABS_Frontend {
         add_action('woocommerce_before_add_to_cart_button', array($this, 'display_general_personalization'), 20);
         add_filter('woocommerce_get_price_html', array($this, 'display_bundle_pricing'), 10, 2);
         add_filter('woocommerce_get_price_html', array($this, 'add_personalization_to_price'), 15, 2);
+
+        // Bundle auto-suggest
+        add_action('woocommerce_add_to_cart', array($this, 'check_for_bundle_suggestions'), 10, 6);
+        add_action('woocommerce_before_cart', array($this, 'display_bundle_suggestion_notice'));
+        add_action('wp_ajax_abs_swap_to_bundle', array($this, 'ajax_swap_to_bundle'));
+        add_action('wp_ajax_nopriv_abs_swap_to_bundle', array($this, 'ajax_swap_to_bundle'));
+        add_action('wp_ajax_abs_dismiss_bundle_suggestion', array($this, 'ajax_dismiss_bundle_suggestion'));
+        add_action('wp_ajax_nopriv_abs_dismiss_bundle_suggestion', array($this, 'ajax_dismiss_bundle_suggestion'));
     }
 
     /**
@@ -433,6 +441,211 @@ class ABS_Frontend {
         }
 
         return $price_html;
+    }
+
+    /**
+     * Check for bundle suggestions when items are added to cart
+     */
+    public function check_for_bundle_suggestions($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data) {
+        // Get all bundles with auto-suggest enabled
+        $bundle_args = array(
+            'post_type' => 'product',
+            'posts_per_page' => -1,
+            'meta_query' => array(
+                'relation' => 'AND',
+                array(
+                    'key' => '_abs_bundle_auto_suggest',
+                    'value' => 'yes',
+                    'compare' => '='
+                )
+            ),
+            'tax_query' => array(
+                array(
+                    'taxonomy' => 'product_type',
+                    'field' => 'slug',
+                    'terms' => 'bundle'
+                )
+            )
+        );
+
+        $bundles = get_posts($bundle_args);
+        if (empty($bundles)) {
+            return; // No bundles with auto-suggest enabled
+        }
+
+        // Get current cart contents
+        $cart = WC()->cart->get_cart();
+        $cart_product_ids = array();
+
+        foreach ($cart as $item) {
+            $cart_product_ids[] = $item['product_id'];
+        }
+
+        // Check each bundle to see if cart matches
+        foreach ($bundles as $bundle_post) {
+            $bundle_items = get_post_meta($bundle_post->ID, '_bundle_items', true);
+            if (empty($bundle_items) || !is_array($bundle_items)) {
+                continue;
+            }
+
+            // Get product IDs in the bundle
+            $bundle_product_ids = array();
+            foreach ($bundle_items as $item) {
+                $bundle_product_ids[] = $item['product_id'];
+            }
+
+            // Check if all bundle products are in the cart
+            $all_in_cart = true;
+            foreach ($bundle_product_ids as $bundle_prod_id) {
+                if (!in_array($bundle_prod_id, $cart_product_ids)) {
+                    $all_in_cart = false;
+                    break;
+                }
+            }
+
+            if ($all_in_cart) {
+                // Calculate savings
+                $bundle_product = wc_get_product($bundle_post->ID);
+                $bundle_price = $bundle_product->get_price();
+
+                $individual_total = 0;
+                foreach ($bundle_items as $item) {
+                    $prod = wc_get_product($item['product_id']);
+                    if ($prod) {
+                        $individual_total += floatval($prod->get_price()) * $item['quantity'];
+                    }
+                }
+
+                $savings = $individual_total - $bundle_price;
+
+                if ($savings > 0) {
+                    // Store suggestion in session
+                    WC()->session->set('abs_bundle_suggestion', array(
+                        'bundle_id' => $bundle_post->ID,
+                        'savings' => $savings,
+                        'bundle_items' => $bundle_items
+                    ));
+                    break; // Only suggest first matching bundle
+                }
+            }
+        }
+    }
+
+    /**
+     * Display bundle suggestion notice on cart page
+     */
+    public function display_bundle_suggestion_notice() {
+        $suggestion = WC()->session->get('abs_bundle_suggestion');
+
+        // Check if user has dismissed this suggestion
+        $dismissed = WC()->session->get('abs_bundle_suggestion_dismissed');
+
+        if (!$suggestion || $dismissed) {
+            return;
+        }
+
+        $bundle_id = $suggestion['bundle_id'];
+        $savings = $suggestion['savings'];
+        $bundle_product = wc_get_product($bundle_id);
+
+        if (!$bundle_product) {
+            return;
+        }
+
+        // Get custom message or use default
+        $message = get_post_meta($bundle_id, '_abs_bundle_auto_suggest_message', true);
+        if (empty($message)) {
+            $message = __('You added products that are part of a bundle! Save {savings} by switching to our bundle deal!', 'advanced-bundle-system');
+        }
+
+        // Replace {savings} placeholder
+        $message = str_replace('{savings}', wc_price($savings), $message);
+
+        ?>
+        <div class="woocommerce-info abs-bundle-suggestion" data-bundle-id="<?php echo esc_attr($bundle_id); ?>">
+            <span class="abs-bundle-suggestion-message"><?php echo wp_kses_post($message); ?></span>
+            <div class="abs-bundle-suggestion-actions" style="margin-top: 10px;">
+                <a href="<?php echo esc_url($bundle_product->get_permalink()); ?>" class="button" target="_blank">
+                    <?php _e('View Bundle', 'advanced-bundle-system'); ?>
+                </a>
+                <button type="button" class="button button-primary abs-swap-to-bundle" data-bundle-id="<?php echo esc_attr($bundle_id); ?>">
+                    <?php _e('Switch to Bundle', 'advanced-bundle-system'); ?>
+                </button>
+                <button type="button" class="button abs-dismiss-suggestion" data-bundle-id="<?php echo esc_attr($bundle_id); ?>">
+                    <?php _e('No Thanks', 'advanced-bundle-system'); ?>
+                </button>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * AJAX handler to swap cart items for bundle
+     */
+    public function ajax_swap_to_bundle() {
+        check_ajax_referer('abs-bundle-suggest', 'nonce');
+
+        $bundle_id = isset($_POST['bundle_id']) ? intval($_POST['bundle_id']) : 0;
+
+        if (!$bundle_id) {
+            wp_send_json_error(array('message' => __('Invalid bundle', 'advanced-bundle-system')));
+        }
+
+        $suggestion = WC()->session->get('abs_bundle_suggestion');
+
+        if (!$suggestion || $suggestion['bundle_id'] != $bundle_id) {
+            wp_send_json_error(array('message' => __('Bundle suggestion not found', 'advanced-bundle-system')));
+        }
+
+        // Get bundle items
+        $bundle_items = $suggestion['bundle_items'];
+
+        // Remove individual items from cart
+        $cart = WC()->cart->get_cart();
+        $removed_items = array();
+
+        foreach ($cart as $cart_item_key => $cart_item) {
+            foreach ($bundle_items as $bundle_item) {
+                if ($cart_item['product_id'] == $bundle_item['product_id']) {
+                    WC()->cart->remove_cart_item($cart_item_key);
+                    $removed_items[] = $cart_item['product_id'];
+                    break;
+                }
+            }
+        }
+
+        // Add bundle to cart
+        $added = WC()->cart->add_to_cart($bundle_id, 1);
+
+        if ($added) {
+            // Clear the suggestion
+            WC()->session->set('abs_bundle_suggestion', null);
+            WC()->session->set('abs_bundle_suggestion_dismissed', null);
+
+            wp_send_json_success(array(
+                'message' => __('Bundle added to cart!', 'advanced-bundle-system'),
+                'redirect' => wc_get_cart_url()
+            ));
+        } else {
+            // Re-add removed items if bundle couldn't be added
+            foreach ($removed_items as $product_id) {
+                WC()->cart->add_to_cart($product_id, 1);
+            }
+
+            wp_send_json_error(array('message' => __('Could not add bundle to cart', 'advanced-bundle-system')));
+        }
+    }
+
+    /**
+     * AJAX handler to dismiss bundle suggestion
+     */
+    public function ajax_dismiss_bundle_suggestion() {
+        check_ajax_referer('abs-bundle-suggest', 'nonce');
+
+        // Mark as dismissed for this session
+        WC()->session->set('abs_bundle_suggestion_dismissed', true);
+
+        wp_send_json_success(array('message' => __('Suggestion dismissed', 'advanced-bundle-system')));
     }
 }
 
