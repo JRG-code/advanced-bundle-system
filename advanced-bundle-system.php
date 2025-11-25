@@ -189,6 +189,25 @@ class Advanced_Bundle_System {
                 'disclaimerText' => __('This is an embroidered product - image is for visualization purposes', 'advanced-bundle-system')
             ));
         }
+
+        // Load bundle auto-suggest assets on cart page
+        if (is_cart()) {
+            wp_enqueue_style('abs-bundle-suggest', ABS_PLUGIN_URL . 'assets/css/bundle-suggest.css', array(), ABS_VERSION);
+
+            wp_register_script('abs-bundle-suggest', ABS_PLUGIN_URL . 'assets/js/bundle-suggest.js', array('jquery'), ABS_VERSION, true);
+            wp_script_add_data('abs-bundle-suggest', 'defer', true);
+            wp_enqueue_script('abs-bundle-suggest');
+
+            wp_localize_script('abs-bundle-suggest', 'absBundleSuggest', array(
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('abs-bundle-suggest'),
+                'strings' => array(
+                    'processing' => __('Processing...', 'advanced-bundle-system'),
+                    'switchToBundle' => __('Switch to Bundle', 'advanced-bundle-system'),
+                    'error' => __('An error occurred. Please try again.', 'advanced-bundle-system')
+                )
+            ));
+        }
     }
 
     /**
