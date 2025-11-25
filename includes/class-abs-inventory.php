@@ -26,6 +26,7 @@ class ABS_Inventory {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_inventory_assets'));
         add_action('wp_ajax_abs_update_stock', array($this, 'ajax_update_stock'));
         add_action('wp_ajax_abs_update_sku', array($this, 'ajax_update_sku'));
+        add_action('wp_ajax_abs_update_price', array($this, 'ajax_update_price'));
         add_action('woocommerce_product_options_inventory_product_data', array($this, 'add_inventory_notice'));
     }
 
@@ -91,6 +92,7 @@ class ABS_Inventory {
                         <th class="abs-col-product"><?php _e('Product', 'advanced-bundle-system'); ?></th>
                         <th class="abs-col-variation"><?php _e('Variation', 'advanced-bundle-system'); ?></th>
                         <th class="abs-col-sku"><?php _e('SKU', 'advanced-bundle-system'); ?></th>
+                        <th class="abs-col-price"><?php _e('Price', 'advanced-bundle-system'); ?></th>
                         <th class="abs-col-stock"><?php _e('Stock', 'advanced-bundle-system'); ?></th>
                         <th class="abs-col-used"><?php _e('Used In', 'advanced-bundle-system'); ?></th>
                     </tr>
@@ -204,7 +206,7 @@ class ABS_Inventory {
     private function render_section_header($title, $section_class) {
         ?>
         <tr class="abs-section-header abs-section-<?php echo esc_attr($section_class); ?>">
-            <td colspan="5">
+            <td colspan="6">
                 <strong><?php echo esc_html($title); ?></strong>
             </td>
         </tr>
@@ -264,6 +266,7 @@ class ABS_Inventory {
                 </div>
             </td>
             <td class="abs-col-sku">—</td>
+            <td class="abs-col-price">—</td>
             <td class="abs-col-stock">
                 <em><?php _e('See variations below', 'advanced-bundle-system'); ?></em>
             </td>
@@ -329,6 +332,11 @@ class ABS_Inventory {
                 <button class="button abs-save-sku" style="display:none;"><?php _e('Save', 'advanced-bundle-system'); ?></button>
                 <span class="abs-sku-feedback"></span>
             </td>
+            <td class="abs-col-price">
+                <input type="number" class="abs-price-input" value="<?php echo esc_attr($variation->get_regular_price()); ?>" min="0" step="0.01" placeholder="0.00" data-original="<?php echo esc_attr($variation->get_regular_price()); ?>" />
+                <button class="button abs-save-price" style="display:none;"><?php _e('Save', 'advanced-bundle-system'); ?></button>
+                <span class="abs-price-feedback"></span>
+            </td>
             <td class="abs-col-stock">
                 <span class="abs-stock-status <?php echo esc_attr($stock_class); ?>">●</span>
                 <?php if ($managing_stock): ?>
@@ -381,8 +389,16 @@ class ABS_Inventory {
         }
 
         $used_in = $this->get_product_usage($product_id, $product_id);
+
+        // Get the appropriate price based on product type
+        $is_bundle = $product->get_type() === 'bundle';
+        if ($is_bundle) {
+            $price = get_post_meta($product_id, '_bundle_price', true);
+        } else {
+            $price = $product->get_regular_price();
+        }
         ?>
-        <tr class="abs-inventory-row <?php echo esc_attr($stock_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>">
+        <tr class="abs-inventory-row <?php echo esc_attr($stock_class); ?>" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-type="<?php echo esc_attr($product->get_type()); ?>">
             <td class="abs-col-product">
                 <strong><?php echo esc_html($product->get_name()); ?></strong>
                 <div class="row-actions">
@@ -394,6 +410,11 @@ class ABS_Inventory {
                 <input type="text" class="abs-sku-input" value="<?php echo esc_attr($product->get_sku()); ?>" placeholder="<?php _e('No SKU', 'advanced-bundle-system'); ?>" data-original="<?php echo esc_attr($product->get_sku()); ?>" />
                 <button class="button abs-save-sku" style="display:none;"><?php _e('Save', 'advanced-bundle-system'); ?></button>
                 <span class="abs-sku-feedback"></span>
+            </td>
+            <td class="abs-col-price">
+                <input type="number" class="abs-price-input" value="<?php echo esc_attr($price); ?>" min="0" step="0.01" placeholder="0.00" data-original="<?php echo esc_attr($price); ?>" />
+                <button class="button abs-save-price" style="display:none;"><?php _e('Save', 'advanced-bundle-system'); ?></button>
+                <span class="abs-price-feedback"></span>
             </td>
             <td class="abs-col-stock">
                 <span class="abs-stock-status <?php echo esc_attr($stock_class); ?>">●</span>
@@ -505,6 +526,50 @@ class ABS_Inventory {
         wp_send_json_success(array(
             'message' => __('SKU updated successfully', 'advanced-bundle-system'),
             'sku' => $sku,
+        ));
+    }
+
+    public function ajax_update_price() {
+        check_ajax_referer('abs_inventory_nonce', 'nonce');
+
+        if (!current_user_can('manage_woocommerce')) {
+            wp_send_json_error(array('message' => __('Insufficient permissions', 'advanced-bundle-system')));
+        }
+
+        $product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
+        $price = isset($_POST['price']) ? sanitize_text_field($_POST['price']) : '';
+        $product_type = isset($_POST['product_type']) ? sanitize_text_field($_POST['product_type']) : '';
+
+        if (!$product_id) {
+            wp_send_json_error(array('message' => __('Invalid product ID', 'advanced-bundle-system')));
+        }
+
+        $product = wc_get_product($product_id);
+        if (!$product) {
+            wp_send_json_error(array('message' => __('Product not found', 'advanced-bundle-system')));
+        }
+
+        // Validate price
+        $price_float = floatval($price);
+        if ($price_float < 0) {
+            wp_send_json_error(array('message' => __('Price cannot be negative', 'advanced-bundle-system')));
+        }
+
+        // Update price based on product type
+        if ($product_type === 'bundle') {
+            // For bundles, update the bundle price
+            update_post_meta($product_id, '_bundle_price', $price_float);
+            update_post_meta($product_id, '_price', $price_float);
+        } else {
+            // For regular products and variations, update regular price
+            $product->set_regular_price($price_float);
+            $product->set_price($price_float);
+            $product->save();
+        }
+
+        wp_send_json_success(array(
+            'message' => __('Price updated successfully', 'advanced-bundle-system'),
+            'price' => $price_float,
         ));
     }
 
