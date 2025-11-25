@@ -228,19 +228,31 @@ class Advanced_Bundle_System {
      * Locate template files from our plugin
      */
     public function locate_template($template, $template_name, $template_path) {
-        // Set default template path
-        if (!$template_path) {
-            $template_path = 'woocommerce/';
-        }
+        // Check for bundle add-to-cart template
+        if ($template_name === 'single-product/add-to-cart/bundle.php') {
+            // First, check if theme has an override
+            $theme_template = locate_template(array(
+                'woocommerce/single-product/add-to-cart/bundle.php',
+            ));
 
-        // Set plugin template path
-        $plugin_template_path = ABS_PLUGIN_DIR . 'templates/';
+            if ($theme_template) {
+                return $theme_template;
+            }
 
-        // Check if template exists in our plugin
-        $plugin_template = $plugin_template_path . $template_name;
+            // Then check our plugin template
+            $plugin_template = ABS_PLUGIN_DIR . 'templates/' . $template_name;
+            if (file_exists($plugin_template)) {
+                return $plugin_template;
+            }
 
-        if (file_exists($plugin_template)) {
-            $template = $plugin_template;
+            // Fallback to simple product template
+            $simple_template = locate_template(array(
+                'woocommerce/single-product/add-to-cart/simple.php',
+            ));
+
+            if ($simple_template) {
+                return $simple_template;
+            }
         }
 
         return $template;
