@@ -70,12 +70,24 @@ class ABS_Frontend {
 
         $item_counter = 0; // Counter for unique IDs when same product appears multiple times
 
+        // Get bundle-level personalization settings
+        $bundle_enable_personalization = get_post_meta($product->get_id(), '_abs_bundle_enable_personalization', true) === 'yes';
+        $bundle_personalization_label = get_post_meta($product->get_id(), '_abs_bundle_personalization_label', true);
+        if (empty($bundle_personalization_label)) {
+            $bundle_personalization_label = __('Enter text:', 'advanced-bundle-system');
+        }
+        $bundle_personalization_cost = floatval(get_post_meta($product->get_id(), '_abs_bundle_personalization_cost', true));
+        $bundle_personalization_optional = get_post_meta($product->get_id(), '_abs_bundle_personalization_optional', true);
+        $bundle_max_characters = get_post_meta($product->get_id(), '_abs_bundle_personalization_max_chars', true);
+        if (empty($bundle_max_characters)) {
+            $bundle_max_characters = 50;
+        }
+        $bundle_disclaimer_text = get_post_meta($product->get_id(), '_abs_bundle_personalization_disclaimer', true);
+
         foreach ($bundle_items as $index => $item) {
             $product_id = $item['product_id'];
             $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
             $variation_id = isset($item['variation_id']) ? intval($item['variation_id']) : 0;
-            $ask_attributes = isset($item['ask_attributes']) && $item['ask_attributes'] === 'yes';
-            $enable_personalization = isset($item['enable_personalization']) && $item['enable_personalization'] === 'yes';
 
             $bundled_product = wc_get_product($product_id);
             if (!$bundled_product) {
@@ -114,20 +126,14 @@ class ABS_Frontend {
                 echo '<h4>' . esc_html($display_name) . '</h4>';
                 echo '<p class="price">' . $price_product->get_price_html() . '</p>';
 
-                // Add attribute selectors if enabled for this item
-                if ($ask_attributes) {
+                // Show attribute selectors for variable products (if no specific variation selected)
+                if ($bundled_product->is_type('variable') && $variation_id == 0) {
                     $this->display_attribute_fields($bundled_product, $product_id, $unique_id);
                 }
 
-                // Add personalization fields if enabled for this item
-                if ($enable_personalization) {
-                    $personalization_label = isset($item['personalization_label']) ? $item['personalization_label'] : __('Enter text:', 'advanced-bundle-system');
-                    $personalization_cost = isset($item['personalization_cost']) ? floatval($item['personalization_cost']) : 0;
-                    $max_characters = isset($item['max_characters']) ? intval($item['max_characters']) : 50;
-                    $disclaimer_text = isset($item['personalization_disclaimer']) ? $item['personalization_disclaimer'] : '';
-
-                    // Bundle personalization is always optional (with toggle)
-                    $this->display_personalization_fields($product_id, $unique_id, $personalization_label, $max_characters, $disclaimer_text, $personalization_cost, 'yes');
+                // Show personalization fields if enabled at bundle level (each item gets its own field)
+                if ($bundle_enable_personalization) {
+                    $this->display_personalization_fields($product_id, $unique_id, $bundle_personalization_label, $bundle_max_characters, $bundle_disclaimer_text, $bundle_personalization_cost, $bundle_personalization_optional);
                 }
 
                 echo '</div>';
@@ -280,40 +286,32 @@ class ABS_Frontend {
     public function display_general_personalization() {
         global $product;
 
-        if (!$product) {
+        // Only display for non-bundle product types (bundles show per-item personalization)
+        if (!$product || $product->get_type() === 'bundle') {
             return;
         }
 
-        $is_bundle = $product->get_type() === 'bundle';
-
-        // Check if personalization is enabled
-        if ($is_bundle) {
-            $enable_personalization = get_post_meta($product->get_id(), '_abs_bundle_enable_personalization', true);
-            $meta_prefix = '_abs_bundle_';
-        } else {
-            $enable_personalization = get_post_meta($product->get_id(), '_abs_enable_personalization', true);
-            $meta_prefix = '_abs_';
-        }
-
+        // Check if personalization is enabled for this product
+        $enable_personalization = get_post_meta($product->get_id(), '_abs_enable_personalization', true);
         if ($enable_personalization !== 'yes') {
             return;
         }
 
         // Get personalization settings
-        $personalization_label = get_post_meta($product->get_id(), $meta_prefix . 'personalization_label', true);
+        $personalization_label = get_post_meta($product->get_id(), '_abs_personalization_label', true);
         if (empty($personalization_label)) {
             $personalization_label = __('Enter text:', 'advanced-bundle-system');
         }
 
-        $personalization_cost = floatval(get_post_meta($product->get_id(), $meta_prefix . 'personalization_cost', true));
-        $personalization_optional = get_post_meta($product->get_id(), $meta_prefix . 'personalization_optional', true);
+        $personalization_cost = floatval(get_post_meta($product->get_id(), '_abs_personalization_cost', true));
+        $personalization_optional = get_post_meta($product->get_id(), '_abs_personalization_optional', true);
 
-        $max_characters = get_post_meta($product->get_id(), $meta_prefix . 'personalization_max_chars', true);
+        $max_characters = get_post_meta($product->get_id(), '_abs_personalization_max_chars', true);
         if (empty($max_characters)) {
             $max_characters = 50;
         }
 
-        $disclaimer_text = get_post_meta($product->get_id(), $meta_prefix . 'personalization_disclaimer', true);
+        $disclaimer_text = get_post_meta($product->get_id(), '_abs_personalization_disclaimer', true);
 
         // Display personalization heading
         $personalization_heading = ABS_Settings::get_setting('personalization_heading', __('Personalization Options:', 'advanced-bundle-system'));
@@ -321,7 +319,7 @@ class ABS_Frontend {
         echo '<div class="abs-general-personalization">';
         echo '<h3>' . esc_html($personalization_heading) . '</h3>';
 
-        // Use unique_id 0 for non-bundle products and bundles (they only have one personalization field)
+        // Use unique_id 0 for non-bundle products (they only have one personalization field)
         // Pass the optional flag to determine if toggle should be shown
         $this->display_personalization_fields($product->get_id(), 0, $personalization_label, $max_characters, $disclaimer_text, $personalization_cost, $personalization_optional);
 
