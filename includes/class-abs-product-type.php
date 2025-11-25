@@ -207,46 +207,6 @@ class ABS_Product_Type {
             </script>
         </div>
 
-        <!-- Bundle Auto-Suggest Settings -->
-        <div class="options_group show_if_bundle">
-            <h4 style="padding: 0 12px; margin: 12px 0 8px;"><?php _e('Bundle Auto-Suggest', 'advanced-bundle-system'); ?></h4>
-
-            <?php
-            woocommerce_wp_checkbox(array(
-                'id' => '_abs_bundle_auto_suggest',
-                'label' => __('Enable bundle auto-suggest', 'advanced-bundle-system'),
-                'description' => __('Automatically suggest this bundle to customers when they add matching products to cart', 'advanced-bundle-system'),
-                'desc_tip' => true,
-            ));
-            ?>
-
-            <div id="abs_bundle_auto_suggest_options" style="<?php echo (get_post_meta($post->ID, '_abs_bundle_auto_suggest', true) === 'yes') ? '' : 'display: none;'; ?>">
-                <?php
-                woocommerce_wp_text_input(array(
-                    'id' => '_abs_bundle_auto_suggest_message',
-                    'label' => __('Suggestion message', 'advanced-bundle-system'),
-                    'desc_tip' => 'true',
-                    'description' => __('Message shown to customer when bundle is suggested. Use {savings} to show savings amount.', 'advanced-bundle-system'),
-                    'placeholder' => __('Hey! You added items that could be bundled together. Save {savings} by switching to our bundle!', 'advanced-bundle-system'),
-                    'value' => get_post_meta($post->ID, '_abs_bundle_auto_suggest_message', true) ?: __('You added products that are part of a bundle! Save {savings} by switching to our bundle deal!', 'advanced-bundle-system')
-                ));
-                ?>
-            </div>
-
-            <script type="text/javascript">
-                jQuery(function($) {
-                    // Toggle auto-suggest options when checkbox is changed
-                    $('#_abs_bundle_auto_suggest').on('change', function() {
-                        if ($(this).is(':checked')) {
-                            $('#abs_bundle_auto_suggest_options').slideDown();
-                        } else {
-                            $('#abs_bundle_auto_suggest_options').slideUp();
-                        }
-                    });
-                });
-            </script>
-        </div>
-
         <!-- Hidden template row -->
         <script type="text/html" id="abs_bundle_item_row_template">
             <?php $this->render_bundle_item_row('{{INDEX}}', array(), null); ?>
@@ -486,14 +446,6 @@ class ABS_Product_Type {
 
             if (isset($_POST['_abs_bundle_personalization_disclaimer'])) {
                 update_post_meta($post_id, '_abs_bundle_personalization_disclaimer', sanitize_textarea_field($_POST['_abs_bundle_personalization_disclaimer']));
-            }
-
-            // Save bundle auto-suggest settings
-            $auto_suggest = isset($_POST['_abs_bundle_auto_suggest']) ? 'yes' : 'no';
-            update_post_meta($post_id, '_abs_bundle_auto_suggest', $auto_suggest);
-
-            if (isset($_POST['_abs_bundle_auto_suggest_message'])) {
-                update_post_meta($post_id, '_abs_bundle_auto_suggest_message', sanitize_text_field($_POST['_abs_bundle_auto_suggest_message']));
             }
         }
     }

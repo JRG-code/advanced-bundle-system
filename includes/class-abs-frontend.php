@@ -447,18 +447,16 @@ class ABS_Frontend {
      * Check for bundle suggestions when items are added to cart
      */
     public function check_for_bundle_suggestions($cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data) {
-        // Get all bundles with auto-suggest enabled
+        // Check if bundle auto-suggest is enabled globally
+        $enabled = ABS_Settings::get_setting('enable_bundle_auto_suggest', 'no');
+        if ($enabled !== 'yes') {
+            return;
+        }
+
+        // Get all bundle products
         $bundle_args = array(
             'post_type' => 'product',
             'posts_per_page' => -1,
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key' => '_abs_bundle_auto_suggest',
-                    'value' => 'yes',
-                    'compare' => '='
-                )
-            ),
             'tax_query' => array(
                 array(
                     'taxonomy' => 'product_type',
@@ -470,7 +468,7 @@ class ABS_Frontend {
 
         $bundles = get_posts($bundle_args);
         if (empty($bundles)) {
-            return; // No bundles with auto-suggest enabled
+            return; // No bundle products found
         }
 
         // Get current cart contents
@@ -552,14 +550,12 @@ class ABS_Frontend {
             return;
         }
 
-        // Get custom message or use default
-        $message = get_post_meta($bundle_id, '_abs_bundle_auto_suggest_message', true);
-        if (empty($message)) {
-            $message = __('You added products that are part of a bundle! Save {savings} by switching to our bundle deal!', 'advanced-bundle-system');
-        }
+        // Get custom message from global settings
+        $message = ABS_Settings::get_setting('bundle_auto_suggest_message', __('You added products that are part of a bundle! Save {savings} by switching to our bundle deal!', 'advanced-bundle-system'));
 
-        // Replace {savings} placeholder
+        // Replace placeholders
         $message = str_replace('{savings}', wc_price($savings), $message);
+        $message = str_replace('{bundle_name}', $bundle_product->get_name(), $message);
 
         ?>
         <div class="woocommerce-info abs-bundle-suggestion" data-bundle-id="<?php echo esc_attr($bundle_id); ?>">

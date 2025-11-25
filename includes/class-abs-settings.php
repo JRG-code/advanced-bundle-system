@@ -179,6 +179,42 @@ class ABS_Settings {
             )
         );
 
+        // Bundle Auto-Suggest Section
+        add_settings_section(
+            'abs_auto_suggest_section',
+            __('Bundle Auto-Suggest', 'advanced-bundle-system'),
+            array($this, 'auto_suggest_section_callback'),
+            'abs-settings'
+        );
+
+        // Enable bundle auto-suggest
+        add_settings_field(
+            'abs_enable_bundle_auto_suggest',
+            __('Enable Bundle Auto-Suggest', 'advanced-bundle-system'),
+            array($this, 'checkbox_field_callback'),
+            'abs-settings',
+            'abs_auto_suggest_section',
+            array(
+                'id' => 'enable_bundle_auto_suggest',
+                'default' => 'no',
+                'description' => __('Automatically suggest bundles to customers when they add matching products to their cart', 'advanced-bundle-system')
+            )
+        );
+
+        // Auto-suggest message
+        add_settings_field(
+            'abs_bundle_auto_suggest_message',
+            __('Suggestion Message', 'advanced-bundle-system'),
+            array($this, 'textarea_field_callback'),
+            'abs-settings',
+            'abs_auto_suggest_section',
+            array(
+                'id' => 'bundle_auto_suggest_message',
+                'default' => __('You added products that are part of a bundle! Save {savings} by switching to our bundle deal!', 'advanced-bundle-system'),
+                'description' => __('Message shown to customer when bundle is suggested. Use {savings} to show savings amount, {bundle_name} for bundle title.', 'advanced-bundle-system')
+            )
+        );
+
         // Menu Fix Section
         add_settings_section(
             'abs_menu_fix_section',
@@ -369,6 +405,7 @@ class ABS_Settings {
 
         // Define all checkbox fields - set to 'no' if not present in input
         $checkbox_fields = array(
+            'enable_bundle_auto_suggest',
             'enable_menu_fix',
             'enable_promo_banner',
             'promo_banner_dismissible',
@@ -430,6 +467,14 @@ class ABS_Settings {
      */
     public function cart_section_callback() {
         echo '<p>' . __('Customize the text displayed in cart and order pages.', 'advanced-bundle-system') . '</p>';
+    }
+
+    /**
+     * Auto-suggest section callback
+     */
+    public function auto_suggest_section_callback() {
+        echo '<p>' . __('Automatically detect when customers add products to their cart that could be purchased as a bundle for savings. A notice will appear on the cart page suggesting the bundle.', 'advanced-bundle-system') . '</p>';
+        echo '<p class="description">' . __('When enabled, the system checks all bundle products and suggests them when matching items are in the cart. Customers can switch with one click or dismiss the suggestion.', 'advanced-bundle-system') . '</p>';
     }
 
     /**
