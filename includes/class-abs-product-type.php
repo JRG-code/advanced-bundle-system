@@ -117,6 +117,38 @@ class ABS_Product_Type {
             </div>
         </div>
 
+        <!-- Product Swapping for Bundles -->
+        <div class="options_group show_if_bundle">
+            <h4 style="padding: 0 12px; margin: 12px 0 8px;"><?php _e('General', 'advanced-bundle-system'); ?></h4>
+
+            <?php
+            // Count unique products in bundle
+            $unique_products = array();
+            if (!empty($bundle_items)) {
+                foreach ($bundle_items as $item) {
+                    if (!in_array($item['product_id'], $unique_products)) {
+                        $unique_products[] = $item['product_id'];
+                    }
+                }
+            }
+            $has_multiple_products = count($unique_products) >= 2;
+            $enable_swapping = get_post_meta($post->ID, '_abs_bundle_enable_product_swapping', true);
+
+            woocommerce_wp_checkbox(array(
+                'id' => '_abs_bundle_enable_product_swapping',
+                'label' => __('Enable product swapping', 'advanced-bundle-system'),
+                'description' => __('Allow customers to swap between different products in this bundle', 'advanced-bundle-system'),
+                'desc_tip' => true,
+                'value' => $has_multiple_products ? $enable_swapping : 'no',
+                'custom_attributes' => $has_multiple_products ? array() : array('disabled' => 'disabled'),
+            ));
+
+            if (!$has_multiple_products) {
+                echo '<p class="description" style="margin-left: 12px; color: #d63638;">' . __('This option requires at least 2 different products in the bundle.', 'advanced-bundle-system') . '</p>';
+            }
+            ?>
+        </div>
+
         <!-- Product Personalization for Bundles -->
         <div class="options_group show_if_bundle">
             <h4 style="padding: 0 12px; margin: 12px 0 8px;"><?php _e('Product Personalization', 'advanced-bundle-system'); ?></h4>
@@ -435,9 +467,26 @@ class ABS_Product_Type {
             update_post_meta($post_id, '_price', $bundle_price);
         }
 
-        // Save bundle personalization settings
+        // Save bundle general settings
         $product = wc_get_product($post_id);
         if ($product && $product->get_type() === 'bundle') {
+            // Product swapping - only enable if 2+ unique products
+            $unique_products = array();
+            if (isset($_POST['abs_bundle_items']) && is_array($_POST['abs_bundle_items'])) {
+                foreach ($_POST['abs_bundle_items'] as $item) {
+                    if (!empty($item['product_id']) && !in_array($item['product_id'], $unique_products)) {
+                        $unique_products[] = $item['product_id'];
+                    }
+                }
+            }
+
+            if (count($unique_products) >= 2 && isset($_POST['_abs_bundle_enable_product_swapping'])) {
+                update_post_meta($post_id, '_abs_bundle_enable_product_swapping', 'yes');
+            } else {
+                update_post_meta($post_id, '_abs_bundle_enable_product_swapping', 'no');
+            }
+
+            // Personalization settings
             $enable_personalization = isset($_POST['_abs_bundle_enable_personalization']) ? 'yes' : 'no';
             update_post_meta($post_id, '_abs_bundle_enable_personalization', $enable_personalization);
 

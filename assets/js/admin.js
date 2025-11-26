@@ -36,12 +36,14 @@
 
                 self.updatePricingSummary();
                 self.updateBaseProductsList();
+                self.updateProductSwappingCheckbox();
             });
 
             // Update pricing on changes
             $(document).on('change', '.abs-product-search, .abs-item-quantity, .abs-variation-select', function() {
                 self.updatePricingSummary();
                 self.updateBaseProductsList();
+                self.updateProductSwappingCheckbox();
             });
 
             $(document).on('change keyup', '#_bundle_price', function() {
@@ -251,6 +253,30 @@
             }
 
             $baseProductsList.html(html);
+        },
+
+        updateProductSwappingCheckbox: function() {
+            var uniqueProducts = [];
+            var $checkbox = $('#_abs_bundle_enable_product_swapping');
+            var $description = $checkbox.closest('.options_group').find('.description');
+
+            // Get all selected products
+            $('#abs_bundle_items_tbody tr').each(function() {
+                var productId = $(this).find('.abs-product-search').val();
+                if (productId && !uniqueProducts.includes(productId)) {
+                    uniqueProducts.push(productId);
+                }
+            });
+
+            // Enable/disable checkbox based on unique products count
+            if (uniqueProducts.length >= 2) {
+                $checkbox.prop('disabled', false);
+                $description.hide();
+            } else {
+                $checkbox.prop('disabled', true);
+                $checkbox.prop('checked', false);
+                $description.show();
+            }
         }
     };
 
