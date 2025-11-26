@@ -10,6 +10,9 @@ if (!defined('ABSPATH')) {
 class ABS_Frontend {
 
     public function __construct() {
+        // Hook for bundle product add-to-cart (WooCommerce calls this for custom product types)
+        add_action('woocommerce_bundle_add_to_cart', array($this, 'bundle_add_to_cart_template'));
+
         add_action('woocommerce_before_add_to_cart_button', array($this, 'display_bundle_products'));
         add_action('woocommerce_before_add_to_cart_button', array($this, 'display_general_personalization'), 20);
         add_filter('woocommerce_get_price_html', array($this, 'display_bundle_pricing'), 10, 2);
@@ -22,6 +25,21 @@ class ABS_Frontend {
         add_action('wp_ajax_nopriv_abs_swap_to_bundle', array($this, 'ajax_swap_to_bundle'));
         add_action('wp_ajax_abs_dismiss_bundle_suggestion', array($this, 'ajax_dismiss_bundle_suggestion'));
         add_action('wp_ajax_nopriv_abs_dismiss_bundle_suggestion', array($this, 'ajax_dismiss_bundle_suggestion'));
+    }
+
+    /**
+     * Bundle add-to-cart template
+     * This is called by WooCommerce when displaying a bundle product
+     */
+    public function bundle_add_to_cart_template() {
+        global $product;
+
+        echo '<div style="background: #00bcd4; color: white; padding: 10px; margin: 10px 0; border: 2px solid #0097a7;">';
+        echo '<strong>🎯 DEBUG:</strong> bundle_add_to_cart_template() is being called!';
+        echo '</div>';
+
+        // Load the bundle template
+        wc_get_template('single-product/add-to-cart/bundle.php');
     }
 
     /**
