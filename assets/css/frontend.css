@@ -162,11 +162,15 @@
     gap: 10px;
 }
 
-/* When inline with personalization (2 attributes + 1 personalization = 3 fields) */
-.abs-inline-with-personalization .abs-attribute-field,
-.abs-inline-with-personalization .abs-personalization-inline-field {
-    flex: 1 1 calc(33.333% - 7px); /* 33% minus gap */
+/* When inline with personalization (2 attributes at 25% each + 1 personalization at 50%) */
+.abs-inline-with-personalization .abs-attribute-field {
+    flex: 0 0 calc(25% - 7px); /* 25% minus gap */
     min-width: 0; /* Allow flex items to shrink below content size */
+}
+
+.abs-inline-with-personalization .abs-personalization-inline-field {
+    flex: 1 1 calc(50% - 7px); /* 50% minus gap, takes remaining space */
+    min-width: 0;
 }
 
 .abs-attribute-field {
