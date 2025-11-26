@@ -33,6 +33,20 @@
             $(document).on('click', '.abs-show-preview', function(e) {
                 e.preventDefault();
             });
+
+            // Product swapping
+            $(document).on('click', '.abs-change-product-btn', function(e) {
+                e.preventDefault();
+                self.showSwapModal($(this));
+            });
+
+            $(document).on('click', '.abs-swap-modal-close, .abs-swap-modal-overlay', function() {
+                self.closeSwapModal();
+            });
+
+            $(document).on('click', '.abs-swap-option', function() {
+                self.selectSwapProduct($(this));
+            });
         },
 
         handlePersonalizationToggle: function($toggle) {
@@ -207,6 +221,86 @@
             }
 
             return isValid;
+        },
+
+        // Product swapping functions
+        showSwapModal: function($button) {
+            var itemIndex = $button.data('item-index');
+            var currentProduct = $button.data('current-product');
+
+            this.currentSwapItemIndex = itemIndex;
+
+            // Show modal
+            var $modal = $('.abs-swap-modal');
+            $modal.fadeIn(300);
+
+            // Mark current product as selected
+            $modal.find('.abs-swap-option').removeClass('selected');
+            $modal.find('.abs-swap-option[data-product-id="' + currentProduct + '"]').addClass('selected');
+
+            // Prevent body scroll
+            $('body').addClass('abs-modal-open');
+        },
+
+        closeSwapModal: function() {
+            $('.abs-swap-modal').fadeOut(300);
+            $('body').removeClass('abs-modal-open');
+            this.currentSwapItemIndex = null;
+        },
+
+        selectSwapProduct: function($option) {
+            var self = this;
+            var newProductId = $option.data('product-id');
+            var itemIndex = this.currentSwapItemIndex;
+
+            if (!itemIndex && itemIndex !== 0) {
+                return;
+            }
+
+            // Find the bundle item
+            var $bundleItem = $('.abs-bundle-item[data-item-index="' + itemIndex + '"]');
+            if ($bundleItem.length === 0) {
+                return;
+            }
+
+            // Get product details from the modal option
+            var $optionImage = $option.find('.abs-swap-option-image img').clone();
+            var productName = $option.find('.abs-swap-option-details h4').text();
+            var productPrice = $option.find('.abs-swap-option-details .price').html();
+
+            // Update the bundle item display
+            $bundleItem.find('.abs-bundle-item-image').html($optionImage);
+            $bundleItem.find('h4').text(productName);
+            $bundleItem.find('.price').html(productPrice);
+
+            // Update the hidden input
+            $bundleItem.find('.abs-selected-product-id').val(newProductId);
+
+            // Update the data attribute
+            $bundleItem.attr('data-product-id', newProductId);
+            $bundleItem.find('.abs-change-product-btn').data('current-product', newProductId);
+
+            // Close modal
+            this.closeSwapModal();
+
+            // Show a brief notification
+            this.showNotification('Product changed successfully!');
+        },
+
+        showNotification: function(message) {
+            var $notification = $('<div class="abs-notification">' + message + '</div>');
+            $('body').append($notification);
+
+            setTimeout(function() {
+                $notification.addClass('show');
+            }, 100);
+
+            setTimeout(function() {
+                $notification.removeClass('show');
+                setTimeout(function() {
+                    $notification.remove();
+                }, 300);
+            }, 2000);
         }
     };
 

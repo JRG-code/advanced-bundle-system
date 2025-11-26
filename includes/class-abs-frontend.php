@@ -96,6 +96,19 @@ class ABS_Frontend {
         }
         $bundle_disclaimer_text = get_post_meta($product->get_id(), '_abs_bundle_personalization_disclaimer', true);
 
+        // Check if product swapping is enabled
+        $enable_swapping = get_post_meta($product->get_id(), '_abs_bundle_enable_product_swapping', true) === 'yes';
+
+        // Get list of all products in bundle for swapping
+        $available_products = array();
+        if ($enable_swapping) {
+            foreach ($bundle_items as $item) {
+                if (!in_array($item['product_id'], $available_products)) {
+                    $available_products[] = $item['product_id'];
+                }
+            }
+        }
+
         foreach ($bundle_items as $index => $item) {
             $product_id = $item['product_id'];
             $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
@@ -136,7 +149,16 @@ class ABS_Frontend {
                 echo '</div>';
 
                 echo '<div class="abs-bundle-item-details">';
+                echo '<div class="abs-bundle-item-header">';
                 echo '<h4>' . esc_html($display_name) . '</h4>';
+
+                // Show "Change" button if swapping is enabled and there are alternative products
+                if ($enable_swapping && count($available_products) > 1) {
+                    echo '<button type="button" class="abs-change-product-btn" data-item-index="' . esc_attr($unique_id) . '" data-current-product="' . esc_attr($product_id) . '">';
+                    echo __('Change', 'advanced-bundle-system');
+                    echo '</button>';
+                }
+                echo '</div>';
 
                 // Display price with original (strikethrough) and sale price
                 $regular_price = $price_product->get_regular_price();
@@ -150,6 +172,9 @@ class ABS_Frontend {
                     echo wc_price($regular_price ? $regular_price : $price_product->get_price());
                 }
                 echo '</p>';
+
+                // Hidden input to track selected product for this item
+                echo '<input type="hidden" name="abs_bundle_item_product[' . esc_attr($unique_id) . ']" value="' . esc_attr($product_id) . '" class="abs-selected-product-id" />';
 
                 // Show attribute selectors if enabled for this item
                 if ($ask_attributes && $bundled_product->is_type('variable')) {
@@ -174,6 +199,34 @@ class ABS_Frontend {
         }
 
         echo '</div>';
+
+        // Add available products data for swapping
+        if ($enable_swapping && !empty($available_products)) {
+            echo '<div class="abs-swap-modal" style="display: none;">';
+            echo '<div class="abs-swap-modal-overlay"></div>';
+            echo '<div class="abs-swap-modal-content">';
+            echo '<button class="abs-swap-modal-close" type="button">&times;</button>';
+            echo '<h3>' . __('Select Product', 'advanced-bundle-system') . '</h3>';
+            echo '<div class="abs-swap-options">';
+
+            foreach ($available_products as $alt_product_id) {
+                $alt_product = wc_get_product($alt_product_id);
+                if ($alt_product) {
+                    echo '<div class="abs-swap-option" data-product-id="' . esc_attr($alt_product_id) . '">';
+                    echo '<div class="abs-swap-option-image">' . $alt_product->get_image('thumbnail') . '</div>';
+                    echo '<div class="abs-swap-option-details">';
+                    echo '<h4>' . esc_html($alt_product->get_name()) . '</h4>';
+                    echo '<p class="price">' . $alt_product->get_price_html() . '</p>';
+                    echo '</div>';
+                    echo '</div>';
+                }
+            }
+
+            echo '</div>';
+            echo '</div>';
+            echo '</div>';
+        }
+
         echo '</div>';
     }
 
