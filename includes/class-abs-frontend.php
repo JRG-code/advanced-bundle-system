@@ -176,14 +176,39 @@ class ABS_Frontend {
                 // Hidden input to track selected product for this item
                 echo '<input type="hidden" name="abs_bundle_item_product[' . esc_attr($unique_id) . ']" value="' . esc_attr($product_id) . '" class="abs-selected-product-id" />';
 
-                // Show attribute selectors if enabled for this item
+                // Determine if we should show personalization inline with attributes
+                $show_inline_personalization = false;
+                $attribute_count = 0;
+
                 if ($ask_attributes && $bundled_product->is_type('variable')) {
-                    $this->display_attribute_fields($bundled_product, $product_id, $unique_id);
+                    $attributes = $bundled_product->get_attributes();
+                    if (!empty($attributes)) {
+                        $attribute_count = count($attributes);
+                    }
                 }
 
-                // Show personalization fields if enabled at bundle level (without disclaimer)
-                if ($bundle_enable_personalization) {
-                    $this->display_personalization_fields($product_id, $unique_id, $bundle_personalization_label, $bundle_max_characters, '', $bundle_personalization_cost, $bundle_personalization_optional);
+                // Show attributes and potentially inline personalization
+                if ($ask_attributes && $bundled_product->is_type('variable')) {
+                    // If 2 or fewer attributes and personalization is enabled, show them inline
+                    if ($attribute_count <= 2 && $bundle_enable_personalization) {
+                        echo '<div class="abs-attribute-fields abs-inline-with-personalization">';
+                        $this->display_attribute_fields_inline($bundled_product, $product_id, $unique_id);
+                        $this->display_personalization_fields_inline($product_id, $unique_id, $bundle_personalization_label, $bundle_max_characters, $bundle_personalization_cost, $bundle_personalization_optional);
+                        echo '</div>';
+                    } else {
+                        // Show attributes normally
+                        $this->display_attribute_fields($bundled_product, $product_id, $unique_id);
+
+                        // Show personalization below if enabled
+                        if ($bundle_enable_personalization) {
+                            $this->display_personalization_fields($product_id, $unique_id, $bundle_personalization_label, $bundle_max_characters, '', $bundle_personalization_cost, $bundle_personalization_optional);
+                        }
+                    }
+                } else {
+                    // No attributes, just show personalization if enabled
+                    if ($bundle_enable_personalization) {
+                        $this->display_personalization_fields($product_id, $unique_id, $bundle_personalization_label, $bundle_max_characters, '', $bundle_personalization_cost, $bundle_personalization_optional);
+                    }
                 }
 
                 echo '</div>';
@@ -228,6 +253,71 @@ class ABS_Frontend {
         }
 
         echo '</div>';
+    }
+
+    /**
+     * Display attribute fields inline (without wrapper)
+     */
+    private function display_attribute_fields_inline($product, $product_id, $unique_id) {
+        $attributes = $product->get_attributes();
+
+        if (empty($attributes)) {
+            return;
+        }
+
+        // Get default attributes for this product
+        $default_attributes = array();
+        if ($product->is_type('variable')) {
+            $default_attributes = $product->get_default_attributes();
+        }
+
+        foreach ($attributes as $attribute_name => $attribute) {
+            // Handle both taxonomy and custom attributes
+            if ($attribute->is_taxonomy()) {
+                $taxonomy = $attribute->get_taxonomy_object();
+                $attribute_label = $taxonomy ? $taxonomy->attribute_label : $attribute_name;
+                $terms = wc_get_product_terms($product_id, $attribute_name, array('fields' => 'all'));
+            } else {
+                $attribute_label = $attribute->get_name();
+                $terms = $attribute->get_options();
+            }
+
+            if (empty($terms)) {
+                continue;
+            }
+
+            // Get default value for this attribute (if set)
+            $sanitized_attribute_name = sanitize_title($attribute_name);
+            $default_value = isset($default_attributes[$sanitized_attribute_name]) ? $default_attributes[$sanitized_attribute_name] : '';
+
+            echo '<div class="abs-attribute-field">';
+            echo '<label for="abs_attribute_' . esc_attr($attribute_name) . '_' . esc_attr($unique_id) . '">';
+            echo esc_html($attribute_label) . ':';
+            echo '</label>';
+            echo '<select name="abs_attributes[' . esc_attr($unique_id) . '][' . esc_attr($attribute_name) . ']" ';
+            echo 'id="abs_attribute_' . esc_attr($attribute_name) . '_' . esc_attr($unique_id) . '" ';
+            echo 'class="abs-attribute-select" required>';
+
+            // Only show placeholder if no default is set
+            if (empty($default_value)) {
+                echo '<option value="">' . sprintf(__('Choose %s', 'advanced-bundle-system'), esc_html($attribute_label)) . '</option>';
+            }
+
+            if ($attribute->is_taxonomy() && is_array($terms)) {
+                foreach ($terms as $term) {
+                    $selected = ($default_value === $term->slug) ? ' selected' : '';
+                    echo '<option value="' . esc_attr($term->slug) . '"' . $selected . '>' . esc_html($term->name) . '</option>';
+                }
+            } else {
+                foreach ($terms as $term) {
+                    $selected = ($default_value === $term) ? ' selected' : '';
+                    echo '<option value="' . esc_attr($term) . '"' . $selected . '>' . esc_html($term) . '</option>';
+                }
+            }
+
+            echo '</select>';
+            echo '</div>';
+        }
     }
 
     /**
@@ -296,6 +386,35 @@ class ABS_Frontend {
             echo '</div>';
         }
 
+        echo '</div>';
+    }
+
+    /**
+     * Display personalization fields inline (simplified for inline display)
+     */
+    private function display_personalization_fields_inline($product_id, $unique_id, $label, $max_characters, $cost = 0, $optional = 'yes') {
+        $placeholder = sprintf(__('Enter text (max %d characters)', 'advanced-bundle-system'), $max_characters);
+        $is_optional = ($optional === 'yes');
+
+        echo '<div class="abs-attribute-field abs-personalization-inline-field">';
+        echo '<label for="abs_personalization_text_' . $unique_id . '">';
+        echo esc_html($label);
+        if ($cost > 0) {
+            echo ' <span class="abs-personalization-cost-label">(+' . wc_price($cost) . ')</span>';
+        }
+        echo '</label>';
+        echo '<input type="text"
+               id="abs_personalization_text_' . $unique_id . '"
+               name="abs_personalization[' . $unique_id . '][text]"
+               data-product-id="' . esc_attr($product_id) . '"
+               data-personalization-cost="' . esc_attr($cost) . '"
+               class="abs-personalization-input abs-attribute-select"
+               maxlength="' . esc_attr($max_characters) . '"
+               placeholder="' . esc_attr($placeholder) . '" />';
+        echo '<input type="hidden"
+               name="abs_personalization[' . $unique_id . '][enabled]"
+               class="abs-personalization-enabled"
+               value="1" />';
         echo '</div>';
     }
 
