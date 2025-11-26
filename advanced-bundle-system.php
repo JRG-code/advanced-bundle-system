@@ -252,6 +252,13 @@ class Advanced_Bundle_System {
     public function locate_template($template, $template_name, $template_path) {
         error_log('ABS DEBUG: locate_template() called for: ' . $template_name);
 
+        // DEBUG: Track all add-to-cart template requests
+        if (strpos($template_name, 'add-to-cart') !== false) {
+            global $product;
+            $product_type = $product ? $product->get_type() : 'unknown';
+            error_log('ABS DEBUG: Add-to-cart template requested - Name: ' . $template_name . ', Product Type: ' . $product_type);
+        }
+
         // Check for bundle add-to-cart template
         if ($template_name === 'single-product/add-to-cart/bundle.php') {
             error_log('ABS DEBUG: Bundle template requested');
