@@ -9,22 +9,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-error_log('ABS DEBUG: Bundle template loaded!');
-
 global $product;
 
-// DEBUG: Show visible output
-echo '<!-- ABS DEBUG: Bundle template is loading -->';
-echo '<div style="background: #ffeb3b; padding: 10px; margin: 10px 0; border: 2px solid #f57c00;">';
-echo '<strong>DEBUG:</strong> Bundle template loaded successfully!';
-echo '<br>Product ID: ' . ($product ? $product->get_id() : 'No product');
-echo '<br>Product Type: ' . ($product ? $product->get_type() : 'No product');
-echo '<br>Is Purchasable: ' . ($product && $product->is_purchasable() ? 'Yes' : 'No');
-echo '<br>In Stock: ' . ($product && $product->is_in_stock() ? 'Yes' : 'No');
-echo '</div>';
-
 if (!$product || !$product->is_purchasable()) {
-    echo '<div style="background: #ff5252; color: white; padding: 10px;">DEBUG: Exiting - product not purchasable</div>';
     return;
 }
 

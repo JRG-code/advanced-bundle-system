@@ -32,12 +32,6 @@ class ABS_Frontend {
      * This is called by WooCommerce when displaying a bundle product
      */
     public function bundle_add_to_cart_template() {
-        global $product;
-
-        echo '<div style="background: #00bcd4; color: white; padding: 10px; margin: 10px 0; border: 2px solid #0097a7;">';
-        echo '<strong>🎯 DEBUG:</strong> bundle_add_to_cart_template() is being called!';
-        echo '</div>';
-
         // Load the bundle template
         wc_get_template('single-product/add-to-cart/bundle.php');
     }
@@ -48,15 +42,9 @@ class ABS_Frontend {
     public function display_bundle_products() {
         global $product;
 
-        error_log('ABS DEBUG: display_bundle_products() called');
-        error_log('ABS DEBUG: Product type: ' . ($product ? $product->get_type() : 'no product'));
-
         if (!$product || 'bundle' !== $product->get_type()) {
-            error_log('ABS DEBUG: Exiting display_bundle_products() - not a bundle product');
             return;
         }
-
-        error_log('ABS DEBUG: Is bundle product, proceeding to display');
 
         $bundle_items = get_post_meta($product->get_id(), '_bundle_items', true);
 
@@ -87,15 +75,6 @@ class ABS_Frontend {
         }
 
         $bundle_heading = ABS_Settings::get_setting('bundle_heading', __('This bundle includes:', 'advanced-bundle-system'));
-
-        error_log('ABS DEBUG: About to display ' . count($bundle_items) . ' bundle items');
-
-        // DEBUG: Visible output
-        echo '<div style="background: #4caf50; color: white; padding: 10px; margin: 10px 0; border: 2px solid #2e7d32;">';
-        echo '<strong>DEBUG:</strong> display_bundle_products() is executing!';
-        echo '<br>Bundle Items Count: ' . count($bundle_items);
-        echo '<br>Product ID: ' . $product->get_id();
-        echo '</div>';
 
         echo '<div class="abs-bundle-products">';
         echo '<h3>' . esc_html($bundle_heading) . '</h3>';
