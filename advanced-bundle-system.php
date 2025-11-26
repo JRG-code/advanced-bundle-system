@@ -228,26 +228,37 @@ class Advanced_Bundle_System {
      * Locate template files from our plugin
      */
     public function locate_template($template, $template_name, $template_path) {
+        error_log('ABS DEBUG: locate_template() called for: ' . $template_name);
+
         // Check for bundle add-to-cart template
         if ($template_name === 'single-product/add-to-cart/bundle.php') {
+            error_log('ABS DEBUG: Bundle template requested');
+
             // First, check if theme has an override
             $theme_template = locate_template(array(
                 'woocommerce/single-product/add-to-cart/bundle.php',
             ));
 
             if ($theme_template) {
+                error_log('ABS DEBUG: Using theme template: ' . $theme_template);
                 return $theme_template;
             }
 
             // Then check our plugin template
             $plugin_template = ABS_PLUGIN_DIR . 'templates/' . $template_name;
+            error_log('ABS DEBUG: Checking plugin template: ' . $plugin_template);
+            error_log('ABS DEBUG: File exists: ' . (file_exists($plugin_template) ? 'yes' : 'no'));
+            error_log('ABS DEBUG: Is readable: ' . (is_readable($plugin_template) ? 'yes' : 'no'));
+
             if (file_exists($plugin_template) && is_readable($plugin_template)) {
+                error_log('ABS DEBUG: Using plugin template: ' . $plugin_template);
                 return $plugin_template;
             }
 
             // Fallback to WooCommerce's simple product template
             $wc_template = WC()->plugin_path() . '/templates/single-product/add-to-cart/simple.php';
             if (file_exists($wc_template)) {
+                error_log('ABS DEBUG: Falling back to WC simple template');
                 return $wc_template;
             }
         }
