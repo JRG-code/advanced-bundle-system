@@ -158,6 +158,28 @@ class Advanced_Bundle_System {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
         add_filter('woocommerce_locate_template', array($this, 'locate_template'), 10, 3);
+
+        // DEBUG: Show product type on all product pages
+        add_action('woocommerce_before_single_product_summary', array($this, 'debug_product_type'), 1);
+    }
+
+    /**
+     * DEBUG: Display product type information
+     */
+    public function debug_product_type() {
+        global $product;
+        if ($product) {
+            echo '<div style="background: #e91e63; color: white; padding: 15px; margin: 15px 0; border: 3px solid #c2185b; font-size: 14px;">';
+            echo '<strong>🔍 PRODUCT TYPE DEBUG:</strong><br>';
+            echo 'Product ID: ' . $product->get_id() . '<br>';
+            echo 'Product Type: <strong>' . $product->get_type() . '</strong><br>';
+            echo 'Product Class: ' . get_class($product) . '<br>';
+            $terms = wp_get_post_terms($product->get_id(), 'product_type');
+            if (!is_wp_error($terms) && !empty($terms)) {
+                echo 'Taxonomy Type: ' . $terms[0]->name . '<br>';
+            }
+            echo '</div>';
+        }
     }
 
     /**
