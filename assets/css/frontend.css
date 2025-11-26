@@ -4,16 +4,16 @@
 
 /* Bundle Products Display */
 .abs-bundle-products {
-    margin: 20px 0;
-    padding: 20px;
+    margin: 15px 0;
+    padding: 15px;
     background: #f9f9f9;
     border: 1px solid #e5e5e5;
     border-radius: 4px;
 }
 
 .abs-bundle-products h3 {
-    margin: 0 0 15px 0;
-    font-size: 18px;
+    margin: 0 0 10px 0;
+    font-size: 16px;
     font-weight: 600;
     color: #333;
 }
@@ -21,30 +21,28 @@
 .abs-bundle-items {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 /* Bundle items - styled as secondary/nested content */
 .abs-bundle-item {
     display: flex;
-    gap: 12px;
-    padding: 12px 15px;
+    gap: 10px;
+    padding: 8px 10px;
     background: rgba(0, 0, 0, 0.02);
     border-left: 3px solid #ddd;
     border-radius: 0 4px 4px 0;
-    opacity: 0.9;
 }
 
 .abs-bundle-item-image {
-    flex: 0 0 60px;
+    flex: 0 0 50px;
 }
 
 .abs-bundle-item-image img {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     object-fit: cover;
     border-radius: 3px;
-    opacity: 0.95;
 }
 
 .abs-bundle-item-details {
@@ -52,16 +50,43 @@
 }
 
 .abs-bundle-item-details h4 {
-    margin: 0 0 5px 0;
-    font-size: 14px;
+    margin: 0 0 3px 0;
+    font-size: 13px;
     font-weight: 500;
     color: #555;
 }
 
 .abs-bundle-item-details .price {
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
     color: #888;
-    font-size: 13px;
+    font-size: 12px;
+}
+
+.abs-bundle-item-details .price del {
+    color: #999;
+    margin-right: 5px;
+}
+
+.abs-bundle-item-details .price ins {
+    text-decoration: none;
+    color: #4caf50;
+    font-weight: 600;
+}
+
+/* Bundle disclaimer - shown once at the end */
+.abs-bundle-disclaimer {
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: #fff3cd;
+    border-left: 3px solid #ffc107;
+    border-radius: 0 4px 4px 0;
+}
+
+.abs-bundle-disclaimer small {
+    color: #856404;
+    font-style: italic;
+    font-size: 11px;
+    line-height: 1.4;
 }
 
 /* Bundle Pricing Display */
@@ -102,32 +127,36 @@
     font-weight: 600;
 }
 
-/* Attribute Fields */
+/* Attribute Fields - side by side layout */
 .abs-attribute-fields {
-    margin-top: 15px;
-    padding-top: 15px;
+    margin-top: 8px;
+    padding-top: 8px;
     border-top: 1px solid #eee;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .abs-attribute-field {
-    margin-bottom: 15px;
+    display: inline-flex;
+    flex-direction: column;
+    flex: 0 0 auto;
 }
 
 .abs-attribute-field label {
-    display: block;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
+    color: #333;
 }
 
 .abs-attribute-select {
-    width: 100%;
-    max-width: 300px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 12px;
     background: #fff;
+    min-width: 100px;
 }
 
 .abs-attribute-select:focus {
@@ -138,27 +167,27 @@
 
 /* Personalization Fields */
 .abs-personalization-fields {
-    margin-top: 15px;
-    padding-top: 15px;
+    margin-top: 8px;
+    padding-top: 8px;
     border-top: 1px solid #eee;
 }
 
 /* Personalization Toggle */
 .abs-personalization-toggle-wrapper {
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 }
 
 .abs-personalization-toggle-label {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
-    padding: 10px 15px;
+    font-size: 12px;
+    padding: 6px 10px;
     background: #f9f9f9;
-    border: 2px solid #ddd;
-    border-radius: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     transition: all 0.3s ease;
 }
 
@@ -168,8 +197,8 @@
 }
 
 .abs-personalization-toggle {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     cursor: pointer;
     accent-color: #4caf50;
 }
@@ -177,34 +206,34 @@
 .abs-toggle-text {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
 .abs-personalization-field {
-    margin-bottom: 10px;
-    margin-top: 10px;
+    margin-bottom: 8px;
+    margin-top: 8px;
 }
 
 .abs-personalization-field label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .abs-personalization-cost-label {
     font-weight: normal;
     color: #4caf50;
-    font-size: 13px;
+    font-size: 11px;
 }
 
 .abs-personalization-input {
     width: 100%;
-    max-width: 400px;
-    padding: 8px 12px;
+    max-width: 300px;
+    padding: 6px 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .abs-personalization-input:focus {
@@ -528,16 +557,33 @@ body.abs-modal-open {
 /* Responsive Styles */
 @media (max-width: 768px) {
     .abs-bundle-item {
-        flex-direction: column;
+        flex-direction: row;
     }
 
     .abs-bundle-item-image {
-        flex: 0 0 auto;
+        flex: 0 0 50px;
     }
 
     .abs-bundle-item-image img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .abs-attribute-fields {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .abs-attribute-field {
         width: 100%;
-        height: auto;
+    }
+
+    .abs-attribute-select {
+        width: 100%;
+    }
+
+    .abs-personalization-input {
+        max-width: 100%;
     }
 
     .abs-preview-content {

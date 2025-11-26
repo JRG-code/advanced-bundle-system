@@ -137,21 +137,40 @@ class ABS_Frontend {
 
                 echo '<div class="abs-bundle-item-details">';
                 echo '<h4>' . esc_html($display_name) . '</h4>';
-                echo '<p class="price">' . $price_product->get_price_html() . '</p>';
+
+                // Display price with original (strikethrough) and sale price
+                $regular_price = $price_product->get_regular_price();
+                $sale_price = $price_product->get_sale_price();
+
+                echo '<p class="price">';
+                if ($sale_price && $sale_price < $regular_price) {
+                    echo '<del>' . wc_price($regular_price) . '</del> ';
+                    echo '<ins>' . wc_price($sale_price) . '</ins>';
+                } else {
+                    echo wc_price($regular_price ? $regular_price : $price_product->get_price());
+                }
+                echo '</p>';
 
                 // Show attribute selectors if enabled for this item
                 if ($ask_attributes && $bundled_product->is_type('variable')) {
                     $this->display_attribute_fields($bundled_product, $product_id, $unique_id);
                 }
 
-                // Show personalization fields if enabled at bundle level (each item gets its own field)
+                // Show personalization fields if enabled at bundle level (without disclaimer)
                 if ($bundle_enable_personalization) {
-                    $this->display_personalization_fields($product_id, $unique_id, $bundle_personalization_label, $bundle_max_characters, $bundle_disclaimer_text, $bundle_personalization_cost, $bundle_personalization_optional);
+                    $this->display_personalization_fields($product_id, $unique_id, $bundle_personalization_label, $bundle_max_characters, '', $bundle_personalization_cost, $bundle_personalization_optional);
                 }
 
                 echo '</div>';
                 echo '</div>';
             }
+        }
+
+        // Show disclaimer once at the end if personalization is enabled
+        if ($bundle_enable_personalization && !empty($bundle_disclaimer_text)) {
+            echo '<div class="abs-bundle-disclaimer">';
+            echo '<small>' . esc_html($bundle_disclaimer_text) . '</small>';
+            echo '</div>';
         }
 
         echo '</div>';
