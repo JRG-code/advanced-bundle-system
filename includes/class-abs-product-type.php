@@ -78,9 +78,13 @@ class ABS_Product_Type {
                 <table id="abs_bundle_items_table" class="wp-list-table widefat fixed striped" style="margin-top: 10px; margin-left: 12px; margin-right: 12px; width: calc(100% - 24px);">
                     <thead>
                         <tr>
-                            <th style="width: 40%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 35%;"><?php _e('Price/Variation', 'advanced-bundle-system'); ?></th>
-                            <th style="width: 15%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 35%;"><?php _e('Product', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 30%;"><?php _e('Price/Variation', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 12%;"><?php _e('Qty', 'advanced-bundle-system'); ?></th>
+                            <th style="width: 13%;">
+                                <?php _e('Attributes', 'advanced-bundle-system'); ?>
+                                <span class="dashicons dashicons-info" style="color: #2271b1; cursor: help; font-size: 16px; vertical-align: middle;" title="<?php esc_attr_e('Allow customers to select product attributes (size, color, etc.) for this item', 'advanced-bundle-system'); ?>"></span>
+                            </th>
                             <th style="width: 10%;"></th>
                         </tr>
                     </thead>
@@ -283,6 +287,19 @@ class ABS_Product_Type {
                        style="width: 60px;" />
             </td>
             <td style="text-align: center;">
+                <?php
+                $ask_attributes = isset($item['ask_attributes']) ? $item['ask_attributes'] : 'no';
+                $is_variable = $product && $product->is_type('variable');
+                ?>
+                <input type="checkbox"
+                       name="abs_bundle_items[<?php echo esc_attr($index); ?>][ask_attributes]"
+                       value="yes"
+                       class="abs-ask-attributes-checkbox"
+                       <?php checked($ask_attributes, 'yes'); ?>
+                       <?php echo !$is_variable ? 'disabled' : ''; ?>
+                       title="<?php echo $is_variable ? esc_attr__('Allow customers to select attributes for this product', 'advanced-bundle-system') : esc_attr__('Only available for variable products', 'advanced-bundle-system'); ?>" />
+            </td>
+            <td style="text-align: center;">
                 <button type="button" class="button abs-remove-item" title="<?php _e('Remove', 'advanced-bundle-system'); ?>">
                     <span class="dashicons dashicons-no-alt"></span>
                 </button>
@@ -391,7 +408,8 @@ class ABS_Product_Type {
                     $bundle_items[] = array(
                         'product_id' => intval($item['product_id']),
                         'quantity' => isset($item['quantity']) ? max(1, intval($item['quantity'])) : 1,
-                        'variation_id' => isset($item['variation_id']) ? intval($item['variation_id']) : 0
+                        'variation_id' => isset($item['variation_id']) ? intval($item['variation_id']) : 0,
+                        'ask_attributes' => isset($item['ask_attributes']) && $item['ask_attributes'] === 'yes' ? 'yes' : 'no'
                     );
                 }
             }

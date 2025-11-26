@@ -88,6 +88,7 @@ class ABS_Frontend {
             $product_id = $item['product_id'];
             $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
             $variation_id = isset($item['variation_id']) ? intval($item['variation_id']) : 0;
+            $ask_attributes = isset($item['ask_attributes']) && $item['ask_attributes'] === 'yes';
 
             $bundled_product = wc_get_product($product_id);
             if (!$bundled_product) {
@@ -126,8 +127,8 @@ class ABS_Frontend {
                 echo '<h4>' . esc_html($display_name) . '</h4>';
                 echo '<p class="price">' . $price_product->get_price_html() . '</p>';
 
-                // Show attribute selectors for variable products (if no specific variation selected)
-                if ($bundled_product->is_type('variable') && $variation_id == 0) {
+                // Show attribute selectors if enabled for this item
+                if ($ask_attributes && $bundled_product->is_type('variable')) {
                     $this->display_attribute_fields($bundled_product, $product_id, $unique_id);
                 }
 
