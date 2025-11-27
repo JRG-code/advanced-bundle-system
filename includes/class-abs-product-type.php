@@ -115,6 +115,22 @@ class ABS_Product_Type {
                 <p><strong><?php _e('Bundle Price:', 'advanced-bundle-system'); ?></strong> <span id="abs_bundle_price_display">-</span></p>
                 <p><strong><?php _e('Discount:', 'advanced-bundle-system'); ?></strong> <span id="abs_discount_percent">-</span></p>
             </div>
+
+            <?php
+            woocommerce_wp_checkbox(array(
+                'id' => '_abs_bundle_round_percentage',
+                'label' => __('Round percentage', 'advanced-bundle-system'),
+                'description' => __('Round discount percentage (e.g., 19.99% becomes 20%)', 'advanced-bundle-system'),
+                'desc_tip' => true,
+            ));
+
+            woocommerce_wp_checkbox(array(
+                'id' => '_abs_bundle_force_round_down_tens',
+                'label' => __('Force round down to nearest 10', 'advanced-bundle-system'),
+                'description' => __('Always round down to nearest value ending in 0 (e.g., 11% becomes 10%, 19% becomes 10%)', 'advanced-bundle-system'),
+                'desc_tip' => true,
+            ));
+            ?>
         </div>
 
         <!-- Product Swapping for Bundles -->
@@ -514,6 +530,13 @@ class ABS_Product_Type {
             if (isset($_POST['_abs_bundle_personalization_disclaimer'])) {
                 update_post_meta($post_id, '_abs_bundle_personalization_disclaimer', sanitize_textarea_field($_POST['_abs_bundle_personalization_disclaimer']));
             }
+
+            // Percentage rounding options
+            $round_percentage = isset($_POST['_abs_bundle_round_percentage']) ? 'yes' : 'no';
+            update_post_meta($post_id, '_abs_bundle_round_percentage', $round_percentage);
+
+            $force_round_down_tens = isset($_POST['_abs_bundle_force_round_down_tens']) ? 'yes' : 'no';
+            update_post_meta($post_id, '_abs_bundle_force_round_down_tens', $force_round_down_tens);
         }
     }
 
@@ -757,7 +780,17 @@ class ABS_Product_Type {
         foreach ($product_ids as $product_id) {
             $product = wc_get_product($product_id);
             if ($product) {
-                $total += $product->get_price();
+                $price = $product->get_price();
+
+                // If price is 0 and product is variable, get minimum price from variations
+                if ((!$price || $price == 0) && $product->is_type('variable')) {
+                    $variation_prices = $product->get_variation_prices(true);
+                    if (!empty($variation_prices['price'])) {
+                        $price = min($variation_prices['price']);
+                    }
+                }
+
+                $total += $price;
             }
         }
         return $total;

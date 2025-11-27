@@ -164,6 +164,20 @@ class ABS_Frontend {
                 $regular_price = $price_product->get_regular_price();
                 $sale_price = $price_product->get_sale_price();
 
+                // If price is 0 and product is variable, get minimum price from variations
+                if ((!$regular_price || $regular_price == 0) && $bundled_product->is_type('variable')) {
+                    $variation_prices = $bundled_product->get_variation_prices(true);
+                    if (!empty($variation_prices['regular_price'])) {
+                        $regular_price = min($variation_prices['regular_price']);
+                    }
+                    if (!empty($variation_prices['sale_price'])) {
+                        $min_sale_price = min($variation_prices['sale_price']);
+                        if ($min_sale_price > 0) {
+                            $sale_price = $min_sale_price;
+                        }
+                    }
+                }
+
                 echo '<p class="price">';
                 if ($sale_price && $sale_price < $regular_price) {
                     echo '<del>' . wc_price($regular_price) . '</del> ';
@@ -565,7 +579,17 @@ class ABS_Frontend {
                 }
 
                 if ($bundled_product) {
-                    $original_total += $bundled_product->get_price() * $quantity;
+                    $item_price = $bundled_product->get_price();
+
+                    // If price is 0 and product is variable, get minimum price from variations
+                    if ((!$item_price || $item_price == 0) && $bundled_product->is_type('variable')) {
+                        $variation_prices = $bundled_product->get_variation_prices(true);
+                        if (!empty($variation_prices['price'])) {
+                            $item_price = min($variation_prices['price']);
+                        }
+                    }
+
+                    $original_total += $item_price * $quantity;
                 }
             }
         }
@@ -578,6 +602,18 @@ class ABS_Frontend {
         }
 
         $discount_percent = ABS_Product_Type::calculate_discount($original_total, $bundle_price);
+
+        // Apply rounding options if enabled
+        $force_round_down_tens = get_post_meta($product->get_id(), '_abs_bundle_force_round_down_tens', true);
+        $round_percentage = get_post_meta($product->get_id(), '_abs_bundle_round_percentage', true);
+
+        if ($force_round_down_tens === 'yes') {
+            // Force round down to nearest 10 (e.g., 11% → 10%, 19% → 10%, 21% → 20%)
+            $discount_percent = floor($discount_percent / 10) * 10;
+        } elseif ($round_percentage === 'yes') {
+            // Standard rounding (e.g., 19.4% → 19%, 19.6% → 20%)
+            $discount_percent = round($discount_percent);
+        }
 
         // Show pricing even if no discount (original price + bundle price)
         $pricing_html = '<div class="abs-bundle-pricing">';
