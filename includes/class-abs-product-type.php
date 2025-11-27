@@ -780,7 +780,17 @@ class ABS_Product_Type {
         foreach ($product_ids as $product_id) {
             $product = wc_get_product($product_id);
             if ($product) {
-                $total += $product->get_price();
+                $price = $product->get_price();
+
+                // If price is 0 and product is variable, get minimum price from variations
+                if ((!$price || $price == 0) && $product->is_type('variable')) {
+                    $variation_prices = $product->get_variation_prices(true);
+                    if (!empty($variation_prices['price'])) {
+                        $price = min($variation_prices['price']);
+                    }
+                }
+
+                $total += $price;
             }
         }
         return $total;

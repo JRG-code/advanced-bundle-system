@@ -164,6 +164,20 @@ class ABS_Frontend {
                 $regular_price = $price_product->get_regular_price();
                 $sale_price = $price_product->get_sale_price();
 
+                // If price is 0 and product is variable, get minimum price from variations
+                if ((!$regular_price || $regular_price == 0) && $bundled_product->is_type('variable')) {
+                    $variation_prices = $bundled_product->get_variation_prices(true);
+                    if (!empty($variation_prices['regular_price'])) {
+                        $regular_price = min($variation_prices['regular_price']);
+                    }
+                    if (!empty($variation_prices['sale_price'])) {
+                        $min_sale_price = min($variation_prices['sale_price']);
+                        if ($min_sale_price > 0) {
+                            $sale_price = $min_sale_price;
+                        }
+                    }
+                }
+
                 echo '<p class="price">';
                 if ($sale_price && $sale_price < $regular_price) {
                     echo '<del>' . wc_price($regular_price) . '</del> ';
@@ -565,7 +579,17 @@ class ABS_Frontend {
                 }
 
                 if ($bundled_product) {
-                    $original_total += $bundled_product->get_price() * $quantity;
+                    $item_price = $bundled_product->get_price();
+
+                    // If price is 0 and product is variable, get minimum price from variations
+                    if ((!$item_price || $item_price == 0) && $bundled_product->is_type('variable')) {
+                        $variation_prices = $bundled_product->get_variation_prices(true);
+                        if (!empty($variation_prices['price'])) {
+                            $item_price = min($variation_prices['price']);
+                        }
+                    }
+
+                    $original_total += $item_price * $quantity;
                 }
             }
         }
