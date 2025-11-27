@@ -579,6 +579,18 @@ class ABS_Frontend {
 
         $discount_percent = ABS_Product_Type::calculate_discount($original_total, $bundle_price);
 
+        // Apply rounding options if enabled
+        $force_round_down_tens = get_post_meta($product->get_id(), '_abs_bundle_force_round_down_tens', true);
+        $round_percentage = get_post_meta($product->get_id(), '_abs_bundle_round_percentage', true);
+
+        if ($force_round_down_tens === 'yes') {
+            // Force round down to nearest 10 (e.g., 11% → 10%, 19% → 10%, 21% → 20%)
+            $discount_percent = floor($discount_percent / 10) * 10;
+        } elseif ($round_percentage === 'yes') {
+            // Standard rounding (e.g., 19.4% → 19%, 19.6% → 20%)
+            $discount_percent = round($discount_percent);
+        }
+
         // Show pricing even if no discount (original price + bundle price)
         $pricing_html = '<div class="abs-bundle-pricing">';
 
