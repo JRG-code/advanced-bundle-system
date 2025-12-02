@@ -270,27 +270,71 @@ class ABS_Cart {
      * Add order item meta
      */
     public function add_order_item_meta($item, $cart_item_key, $values, $order) {
-        // Save attributes
+        // Save attributes with product identification
         if (isset($values['abs_attributes'])) {
-            foreach ($values['abs_attributes'] as $unique_id => $attributes) {
-                foreach ($attributes as $attr_name => $attr_value) {
-                    $item->add_meta_data(
-                        ucfirst(str_replace('_', ' ', $attr_name)),
-                        $attr_value,
-                        true
-                    );
+            $product_id = $item->get_product_id();
+            $bundle_items = get_post_meta($product_id, '_bundle_items', true);
+
+            if (is_array($bundle_items)) {
+                $item_counter = 0;
+                foreach ($bundle_items as $bundle_item) {
+                    $bundled_product_id = $bundle_item['product_id'];
+                    $item_quantity = isset($bundle_item['quantity']) ? $bundle_item['quantity'] : 1;
+
+                    for ($q = 0; $q < $item_quantity; $q++) {
+                        $unique_id = $item_counter++;
+
+                        if (isset($values['abs_attributes'][$unique_id])) {
+                            $bundled_product = wc_get_product($bundled_product_id);
+                            $product_name = $bundled_product ? $bundled_product->get_name() : '';
+
+                            foreach ($values['abs_attributes'][$unique_id] as $attr_name => $attr_value) {
+                                $display_name = ucfirst(str_replace('_', ' ', $attr_name));
+
+                                // Add product name to distinguish between items in bundle
+                                if ($product_name) {
+                                    $display_name .= ' (' . $product_name . ')';
+                                }
+
+                                $item->add_meta_data($display_name, $attr_value, false);
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // Save personalization
+        // Save personalization with product identification
         if (isset($values['abs_personalization'])) {
-            foreach ($values['abs_personalization'] as $unique_id => $personalization) {
-                $item->add_meta_data(
-                    __('Personalization', 'advanced-bundle-system'),
-                    $personalization['text'],
-                    true
-                );
+            $product_id = $item->get_product_id();
+            $bundle_items = get_post_meta($product_id, '_bundle_items', true);
+
+            if (is_array($bundle_items)) {
+                $item_counter = 0;
+                foreach ($bundle_items as $bundle_item) {
+                    $bundled_product_id = $bundle_item['product_id'];
+                    $item_quantity = isset($bundle_item['quantity']) ? $bundle_item['quantity'] : 1;
+
+                    for ($q = 0; $q < $item_quantity; $q++) {
+                        $unique_id = $item_counter++;
+
+                        if (isset($values['abs_personalization'][$unique_id])) {
+                            $bundled_product = wc_get_product($bundled_product_id);
+                            $product_name = $bundled_product ? $bundled_product->get_name() : '';
+
+                            $personalization_label = __('Personalization', 'advanced-bundle-system');
+                            if ($product_name) {
+                                $personalization_label .= ' (' . $product_name . ')';
+                            }
+
+                            $item->add_meta_data(
+                                $personalization_label,
+                                $values['abs_personalization'][$unique_id]['text'],
+                                false
+                            );
+                        }
+                    }
+                }
             }
         }
 
