@@ -175,15 +175,90 @@ class ABS_Cart {
      * Display cart item data
      */
     public function display_cart_item_data($item_data, $cart_item) {
+        // Get product and bundle info
+        $product = $cart_item['data'];
+        $variation_ids = isset($cart_item['abs_variation_ids']) ? $cart_item['abs_variation_ids'] : array();
+
         // Display attributes
         if (isset($cart_item['abs_attributes'])) {
-            foreach ($cart_item['abs_attributes'] as $unique_id => $attributes) {
-                foreach ($attributes as $attr_name => $attr_value) {
-                    $item_data[] = array(
-                        'key' => ucfirst(str_replace('_', ' ', $attr_name)),
-                        'value' => esc_html($attr_value),
-                        'display' => ''
-                    );
+            $product_id = $product->get_id();
+            $bundle_items = get_post_meta($product_id, '_bundle_items', true);
+
+            if (is_array($bundle_items)) {
+                $item_counter = 0;
+                foreach ($bundle_items as $bundle_item) {
+                    $bundled_product_id = $bundle_item['product_id'];
+                    $item_quantity = isset($bundle_item['quantity']) ? $bundle_item['quantity'] : 1;
+
+                    for ($q = 0; $q < $item_quantity; $q++) {
+                        $unique_id = $item_counter++;
+
+                        if (isset($cart_item['abs_attributes'][$unique_id])) {
+                            $bundled_product = wc_get_product($bundled_product_id);
+                            $product_name = $bundled_product ? $bundled_product->get_name() : '';
+
+                            // Check if this item has a variation
+                            if (isset($variation_ids[$unique_id])) {
+                                $variation_id = $variation_ids[$unique_id];
+                                $variation = wc_get_product($variation_id);
+
+                                if ($variation) {
+                                    // Display Variation ID first
+                                    $variation_id_key = __('Variation ID', 'advanced-bundle-system');
+                                    if ($product_name) {
+                                        $variation_id_key .= ' (' . $product_name . ')';
+                                    }
+
+                                    $item_data[] = array(
+                                        'key' => $variation_id_key,
+                                        'value' => '#' . $variation_id,
+                                        'display' => ''
+                                    );
+
+                                    // Get formatted variation attributes
+                                    $variation_attributes = $variation->get_variation_attributes();
+
+                                    foreach ($variation_attributes as $attr_key => $attr_value) {
+                                        $taxonomy = str_replace('attribute_', '', $attr_key);
+
+                                        if (taxonomy_exists($taxonomy)) {
+                                            $term = get_term_by('slug', $attr_value, $taxonomy);
+                                            $attribute_label = wc_attribute_label($taxonomy);
+                                            $attribute_value = $term ? $term->name : $attr_value;
+                                        } else {
+                                            $attribute_label = wc_attribute_label($taxonomy);
+                                            $attribute_value = $attr_value;
+                                        }
+
+                                        $display_key = $attribute_label;
+                                        if ($product_name) {
+                                            $display_key .= ' (' . $product_name . ')';
+                                        }
+
+                                        $item_data[] = array(
+                                            'key' => $display_key,
+                                            'value' => esc_html($attribute_value),
+                                            'display' => ''
+                                        );
+                                    }
+                                }
+                            } else {
+                                // No variation - use raw attributes
+                                foreach ($cart_item['abs_attributes'][$unique_id] as $attr_name => $attr_value) {
+                                    $display_key = ucfirst(str_replace('_', ' ', $attr_name));
+                                    if ($product_name) {
+                                        $display_key .= ' (' . $product_name . ')';
+                                    }
+
+                                    $item_data[] = array(
+                                        'key' => $display_key,
+                                        'value' => esc_html($attr_value),
+                                        'display' => ''
+                                    );
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -274,6 +349,7 @@ class ABS_Cart {
         if (isset($values['abs_attributes'])) {
             $product_id = $item->get_product_id();
             $bundle_items = get_post_meta($product_id, '_bundle_items', true);
+            $variation_ids = isset($values['abs_variation_ids']) ? $values['abs_variation_ids'] : array();
 
             if (is_array($bundle_items)) {
                 $item_counter = 0;
@@ -288,15 +364,60 @@ class ABS_Cart {
                             $bundled_product = wc_get_product($bundled_product_id);
                             $product_name = $bundled_product ? $bundled_product->get_name() : '';
 
-                            foreach ($values['abs_attributes'][$unique_id] as $attr_name => $attr_value) {
-                                $display_name = ucfirst(str_replace('_', ' ', $attr_name));
+                            // Check if this item has a variation
+                            if (isset($variation_ids[$unique_id])) {
+                                $variation_id = $variation_ids[$unique_id];
+                                $variation = wc_get_product($variation_id);
 
-                                // Add product name to distinguish between items in bundle
-                                if ($product_name) {
-                                    $display_name .= ' (' . $product_name . ')';
+                                if ($variation) {
+                                    // Add Variation ID as visible meta
+                                    $variation_id_label = __('Variation ID', 'advanced-bundle-system');
+                                    if ($product_name) {
+                                        $variation_id_label .= ' (' . $product_name . ')';
+                                    }
+                                    $item->add_meta_data($variation_id_label, '#' . $variation_id, false);
+
+                                    // Get formatted variation attributes from the actual variation
+                                    $variation_attributes = $variation->get_variation_attributes();
+
+                                    foreach ($variation_attributes as $attr_key => $attr_value) {
+                                        // Get the attribute label
+                                        $taxonomy = str_replace('attribute_', '', $attr_key);
+
+                                        if (taxonomy_exists($taxonomy)) {
+                                            $term = get_term_by('slug', $attr_value, $taxonomy);
+                                            $attribute_label = wc_attribute_label($taxonomy);
+                                            $attribute_value = $term ? $term->name : $attr_value;
+                                        } else {
+                                            // Custom attribute (non-taxonomy)
+                                            $attribute_label = wc_attribute_label($taxonomy);
+                                            $attribute_value = $attr_value;
+                                        }
+
+                                        // Add product name to distinguish between items in bundle
+                                        $display_name = $attribute_label;
+                                        if ($product_name) {
+                                            $display_name .= ' (' . $product_name . ')';
+                                        }
+
+                                        $item->add_meta_data($display_name, $attribute_value, false);
+                                    }
+
+                                    // Also save the variation ID for stock management (hidden)
+                                    $item->add_meta_data('_variation_id_' . $unique_id, $variation_id, false);
                                 }
+                            } else {
+                                // No variation - use the raw attributes
+                                foreach ($values['abs_attributes'][$unique_id] as $attr_name => $attr_value) {
+                                    $display_name = ucfirst(str_replace('_', ' ', $attr_name));
 
-                                $item->add_meta_data($display_name, $attr_value, false);
+                                    // Add product name to distinguish between items in bundle
+                                    if ($product_name) {
+                                        $display_name .= ' (' . $product_name . ')';
+                                    }
+
+                                    $item->add_meta_data($display_name, $attr_value, false);
+                                }
                             }
                         }
                     }
