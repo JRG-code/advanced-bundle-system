@@ -329,13 +329,21 @@ class ABS_Stock {
      * Prevent WooCommerce from reducing stock for bundle products
      * (we handle individual product stock reduction separately)
      */
-    public function prevent_bundle_stock_reduction($can_reduce, $item) {
-        $product = $item->get_product();
+    public function prevent_bundle_stock_reduction($can_reduce, $order) {
+        // Ensure we have a valid order object
+        if (!is_a($order, 'WC_Order')) {
+            return $can_reduce;
+        }
 
-        if ($product && 'bundle' === $product->get_type()) {
-            // Don't reduce stock for the bundle itself
-            // Individual product stock is handled in ABS_Order class
-            return false;
+        // Check if any item in the order is a bundle
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+
+            if ($product && 'bundle' === $product->get_type()) {
+                // Don't reduce stock for the bundle itself
+                // Individual product stock is handled in ABS_Order class
+                return false;
+            }
         }
 
         return $can_reduce;
